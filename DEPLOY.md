@@ -186,8 +186,10 @@ manuel-beck.com/
 │   ├── datenschutz/index.html
 │   └── assets/        css, js, fonts, icons, favicon, images
 ├── originale/         Originalfotos, bleiben lokal
-├── index.html         altes Aerial-Template, nur noch Altbestand
-├── assets/            dito
 ├── deploy.sh          Deployment-Skript
 └── DEPLOY.md          diese Datei
 ```
+
+Das alte Aerial-Template wurde am 13. August 2026 entfernt. Es liegt weiterhin
+im Branch `backup-aerial` und in der Git-Historie, falls doch einmal jemand
+hineinschauen will.
