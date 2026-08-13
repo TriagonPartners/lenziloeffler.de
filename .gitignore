@@ -1,1 +1,7 @@
 .DS_Store
+
+# Persönliche Berechtigungen für Claude Code, gehören nicht ins Repo
+.claude/settings.local.json
+
+# Temporäre Vorschaudateien aus lokalen Tests
+site/__*.html

@@ -1,0 +1,1182 @@
+/* ==========================================================================
+   manuel-beck.com — Base Stylesheet
+   Plain CSS, kein Framework. Aufbau:
+   1. Font
+   2. Design-Tokens
+   3. Reset / Basis
+   4. Intro-Animation (portiert aus dem Aerial-Template)
+   5. Layout (Seite, Hero, Footer)
+   6. Icon-Buttons
+   7. Panels — Basis + Contact
+   8. About-Me-Overlay
+   9. Subseiten (Impressum / Datenschutz)
+   10. Responsive
+   ========================================================================== */
+
+/* 1. Font ----------------------------------------------------------------- */
+
+@font-face {
+  font-family: "Plus Jakarta Sans";
+  /* Variable Font: eine Datei deckt 200–800 ab.
+     Pfad ist relativ zu dieser CSS-Datei (assets/css/). */
+  src: url("../fonts/PlusJakartaSans/PlusJakartaSans-Variable.woff2") format("woff2-variations"),
+       url("../fonts/PlusJakartaSans/PlusJakartaSans-Variable.woff2") format("woff2");
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 2. Design-Tokens -------------------------------------------------------- */
+
+:root {
+  /* Farben — ausschließlich diese vier Werte, keine abgeschwächten Varianten
+     für Text oder Linien. */
+  --color-yellow: #f5d000;
+  --color-ink: #0a0a0a;
+  --color-dark: #242424;
+  --color-light: #f5f5f5;
+
+  /* Akzentfarben — ausschließlich für die Symbolfläche des jeweiligen Icons
+     im Hover-Zustand. Sonst nirgends verwendet.
+
+     ABSICHT, nicht versehentlich: Grün–Weiß–Rot ergeben in der Reihenfolge
+     der drei Icons die italienische Trikolore, als leise Referenz. Sichtbar
+     immer nur einzeln, weil jeweils nur ein Icon gehovert wird — deshalb
+     tritt sie nie als Farbblock neben das Zweifarbschema.
+     Das Grün ist bewusst KEIN LinkedIn-Blau (#0a66c2), bitte nicht
+     „korrigieren". */
+  --color-accent-linkedin: #007a3d; /* Grün  */
+  --color-accent-about: #f5f5f5;    /* Weiß  */
+  --color-accent-contact: #b90400;  /* Rot   */
+
+  /* Typo */
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* Hero-Skala: 96px auf Desktop, skaliert proportional nach unten.
+     Alle vertikalen Abstände im Hero leiten sich hiervon ab, damit das
+     kalibrierte Verhältnis (30px / 60px bei 96px Hero) erhalten bleibt. */
+  --hero-size: clamp(2.75rem, 11.5vw, 6rem);          /* max 96px */
+  --tagline-size: clamp(1.0625rem, 3.35vw, 1.75rem);  /* max 28px */
+
+  --space-hero-tagline: calc(var(--hero-size) * 0.3125); /* 96px → 30px */
+  --space-tagline-icons: calc(var(--hero-size) * 0.625); /* 96px → 60px */
+
+  /* Icon-Buttons — 33 % größer als zuvor (3.5rem → 4.65rem) */
+  --icon-button-size: clamp(4rem, 14.6vw, 4.65rem);
+  --icon-glyph-size: 42%;
+  --icon-gap: clamp(1.25rem, 4.5vw, 1.75rem);
+  --icon-border: 2px;
+
+  /* --- Bewegung: EIN Tempo und EINE Kurve für die ganze Seite ------------
+     Dauer 1s stammt aus dem Aerial-Template (animation: header 1s …).
+     Alles was ein- oder ausblendet nutzt diese beiden Werte: Intro, Panels,
+     Bild-Reveals im Overlay. */
+  --fade: 1s;
+  /* Panels gehen zügiger auf als die Bild-Reveals laufen — beim Aufklappen
+     wartet man, beim Lesen nicht. */
+  --fade-panel: 0.45s;
+  --ease-soft: cubic-bezier(0.25, 0.46, 0.45, 0.94); /* weiche Landung */
+
+  /* Der Seitenaufbau läuft langsamer als die Interaktionen. Aerial konnte
+     schneller sein, weil dort zuerst ein Foto einfadet und das Auge schon
+     beschäftigt ist — auf einer einfarbigen Fläche wirkt dasselbe Tempo
+     hektisch. Einzige Stellschraube fürs Intro. */
+  --fade-intro: 1.7s;
+
+  /* Weg des Einblendens — absichtlich klein und für alle Elemente gleich,
+     damit sich die Abstände zwischen Hero und Tagline beim Einfaden nicht
+     verändern. (Aerial nutzte 1em, was pro Schriftgröße unterschiedlich
+     weit ist und die Zeilen ineinanderlaufen lässt.) */
+  --intro-rise: 8px;
+  /* Staffelung mitgewachsen, damit das Verhältnis zur Dauer wie bei Aerial
+     bleibt (dort 0.25s auf 1s). */
+  --intro-stagger: 0.4s;
+  /* Basis-Delay. Aerial startet bei 2.25s, weil dort zuerst das
+     Hintergrundbild 3s lang einfadet. Hier erscheint der gelbe Grund
+     sofort, deshalb rückt die Kette nach vorn. */
+  --intro-base: 0.25s;
+
+  /* Seitenrahmen */
+  --page-pad-y: clamp(1.5rem, 5vw, 3rem);
+  --page-pad-x: clamp(1.25rem, 5vw, 2.5rem);
+  --footer-inset: clamp(0.75rem, 1.6vh, 1.25rem); /* Footer zur Unterkante */
+
+  /* Overlay — mittig im Viewport, dadurch oben und unten automatisch
+     derselbe Abstand. Der Footer bleibt darunter sichtbar. */
+  /* Größe nach der markierten Fläche: rund 62 % der Fensterbreite und 78 %
+     der Höhe, mittig — also ca. 19vw Rand seitlich und 11vh oben/unten. */
+  --about-width: min(62vw, 1060px);
+  --about-height: min(78vh, 800px);
+
+  /* Innenrand. Links, rechts und oben doppelt so groß wie zuvor — der graue
+     Rahmen um das Bild ist damit verdoppelt. Unten bleibt es beim alten Maß,
+     dort sitzt der Anschnitt des nächsten Kapitels. */
+  --about-pad: clamp(1.25rem, 2.2vw, 2rem);
+  --about-frame: calc(var(--about-pad) * 1.5);
+  /* Anschnitt des nächsten Kapitels. Muss den Innenrand überschreiten,
+     sonst ragt nur grauer Rand herein statt des Bildanfangs. */
+  --about-peek: calc(var(--about-frame) + 1.875rem);
+
+  --panel-radius: 18px;
+}
+
+/* 3. Reset / Basis -------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  /* svh zuerst als Rückfall für ältere iOS-Versionen, die es nicht kennen */
+  min-height: 100vh;
+  min-height: 100svh;
+  -webkit-tap-highlight-color: transparent;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: inherit;
+}
+
+img,
+video {
+  max-width: 100%;
+  display: block;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  margin: 0;
+}
+
+figure {
+  margin: 0;
+}
+
+/* Nur für Screenreader sichtbar */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* 4. Intro-Animation ------------------------------------------------------ */
+/* Portiert aus assets/css/main.css des Aerial-Templates:
+   - Mechanik:  body.is-preload friert alle Animationen ein, window.onload
+                entfernt die Klasse  (identisch zum Original)
+   - Dauer 1s, Staffelung 0.25s, Reihenfolge Text → Icons → Footer
+   Geändert gegenüber Aerial: der Weg ist auf 8px begrenzt (statt 1em, das
+   pro Schriftgröße unterschiedlich weit ist) und die Kurve ist ein weiches
+   Ease-Out statt des Standard-ease.
+
+   Alle Regeln hängen an html.js — ohne JavaScript wird die Klasse nie
+   gesetzt, dann ist die Seite von Anfang an vollständig sichtbar. */
+
+body.is-preload *,
+body.is-preload *::before,
+body.is-preload *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+@keyframes intro-rise {
+  0% {
+    transform: translate3d(0, var(--intro-rise), 0);
+    opacity: 0;
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+/* Schritt 2 — Hero Line + Tagline, gemeinsam und mit identischem Weg,
+   deshalb bleibt ihr Abstand während des Einfadens konstant. */
+.js .hero__title,
+.js .hero__tagline {
+  opacity: 0;
+  animation: intro-rise var(--fade-intro) var(--ease-soft) var(--intro-base) forwards;
+}
+
+/* Schritt 3 — Icon-Buttons, nacheinander (Aerial: #header nav li).
+   Die Animation sitzt auf .action-shell und nicht auf .action-wrap:
+   animation-fill-mode: forwards lässt den transform stehen, und ein
+   transformierter Vorfahre wird zum Bezugsrahmen für position: fixed —
+   das Overlay wäre sonst auf die Buttongröße eingesperrt. */
+.js .action-shell {
+  opacity: 0;
+  animation: intro-rise var(--fade-intro) var(--ease-soft) forwards;
+}
+
+.js .action-wrap:nth-child(1) .action-shell {
+  animation-delay: calc(var(--intro-base) + 1 * var(--intro-stagger));
+}
+
+.js .action-wrap:nth-child(2) .action-shell {
+  animation-delay: calc(var(--intro-base) + 2 * var(--intro-stagger));
+}
+
+.js .action-wrap:nth-child(3) .action-shell {
+  animation-delay: calc(var(--intro-base) + 3 * var(--intro-stagger));
+}
+
+/* Footer zuletzt */
+.js .page--home .footer {
+  opacity: 0;
+  animation: intro-rise var(--fade-intro) var(--ease-soft) forwards;
+  animation-delay: calc(var(--intro-base) + 4 * var(--intro-stagger));
+}
+
+/* 5. Layout --------------------------------------------------------------- */
+
+/* Gemeinsames Grundgerüst aller Seiten: Inhalt oben, Footer unten in den
+   beiden Ecken, eng an der Unterkante. */
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  min-height: 100svh;
+  padding: var(--page-pad-y) var(--page-pad-x) var(--footer-inset);
+}
+
+.page--home {
+  background-color: var(--color-yellow);
+  color: var(--color-ink);
+}
+
+.page--dark {
+  background-color: var(--color-dark);
+  color: var(--color-light);
+}
+
+/* Hero: eine zentrierte Flex-Column — Hero Line, Tagline und Icon-Reihe
+   liegen dadurch automatisch auf einer gemeinsamen Mittelachse. */
+.hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+}
+
+.hero__title {
+  margin: 0;
+  font-size: var(--hero-size);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.hero__tagline {
+  margin: var(--space-hero-tagline) 0 0;
+  font-size: var(--tagline-size);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+/* Footer — © links unten, Links rechts unten. Auseinandergezogen, damit er
+   neben dem geöffneten Overlay nicht dominiert. */
+.footer {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  margin-top: clamp(1.5rem, 4vh, 2.5rem);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.footer__links {
+  display: flex;
+  align-items: baseline;
+}
+
+.footer a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.footer a:hover,
+.footer a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Trenner in derselben Farbe wie der Text, doppelter Abstand */
+.footer__sep {
+  margin: 0 0.75em;
+}
+
+/* 6. Icon-Buttons --------------------------------------------------------- */
+
+/* Positionierungs-Anker für das Contact-Panel, das sich an der Mittelachse
+   der ganzen Reihe ausrichtet statt am einzelnen Button. */
+.actions {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--icon-gap);
+  margin-top: var(--space-tagline-icons);
+}
+
+/* Wrapper hält Button + zugehöriges Panel zusammen (Positionierungs-Anker,
+   Hover bleibt beim Weg zum Panel erhalten). */
+.action-wrap {
+  position: relative;
+  display: flex;
+}
+
+/* Träger der Intro-Animation — hält den transform vom Panel fern. */
+.action-shell {
+  display: flex;
+}
+
+/* Gelbe Fläche, schwarze Umrandung, schwarzes Glyph.
+   Im Hover kehrt sich das um: schwarze Fläche, und die Symbolfläche nimmt
+   die Akzentfarbe des jeweiligen Icons an (siehe .action--*). */
+.action {
+  --action-hover-glyph: var(--color-yellow); /* Rückfallwert */
+  display: grid;
+  place-items: center;
+  width: var(--icon-button-size);
+  height: var(--icon-button-size);
+  padding: 0;
+  border: var(--icon-border) solid var(--color-ink);
+  border-radius: 50%;
+  background-color: var(--color-yellow);
+  color: var(--color-ink);
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 180ms var(--ease-soft),
+              background-color 180ms var(--ease-soft),
+              color 180ms var(--ease-soft);
+}
+
+.action:focus-visible,
+.action[aria-expanded="true"] {
+  transform: translateY(-2px);
+  background-color: var(--color-ink);
+  color: var(--action-hover-glyph);
+}
+
+/* Nur mit echtem Zeiger. Auf Touch-Geräten bliebe :hover nach dem Antippen
+   hängen, bis woanders hingetippt wird. */
+@media (hover: hover) and (pointer: fine) {
+  .action:hover {
+    transform: translateY(-2px);
+    background-color: var(--color-ink);
+    color: var(--action-hover-glyph);
+  }
+}
+
+/* Akzentfarbe je Icon — greift über currentColor auf die Maskenfläche. */
+.action--linkedin {
+  --action-hover-glyph: var(--color-accent-linkedin);
+}
+
+.action--about {
+  --action-hover-glyph: var(--color-accent-about);
+}
+
+.action--contact {
+  --action-hover-glyph: var(--color-accent-contact);
+}
+
+.action:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 3px;
+}
+
+/* Icons als CSS-Mask, damit die SVG-Dateien unverändert bleiben und
+   trotzdem über die Textfarbe eingefärbt werden können. */
+.icon {
+  width: var(--icon-glyph-size);
+  height: var(--icon-glyph-size);
+  background-color: currentColor;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+.icon--linkedin {
+  -webkit-mask-image: url("/assets/icons/linkedin-in.svg");
+  mask-image: url("/assets/icons/linkedin-in.svg");
+}
+
+.icon--user {
+  -webkit-mask-image: url("/assets/icons/user.svg");
+  mask-image: url("/assets/icons/user.svg");
+}
+
+.icon--envelope {
+  -webkit-mask-image: url("/assets/icons/envelope.svg");
+  mask-image: url("/assets/icons/envelope.svg");
+}
+
+.icon--arrow-left {
+  -webkit-mask-image: url("/assets/icons/arrow-left-solid-full.svg");
+  mask-image: url("/assets/icons/arrow-left-solid-full.svg");
+}
+
+/* 7. Panels — Basis + Contact --------------------------------------------- */
+
+.panel {
+  position: absolute;
+  top: calc(100% + 0.875rem);
+  left: 50%;
+  z-index: 20;
+  width: max-content;
+  max-width: min(520px, calc(100vw - 2.5rem));
+  padding: clamp(1.25rem, 3vw, 1.75rem);
+  border-radius: var(--panel-radius);
+  background-color: var(--color-dark);
+  color: var(--color-light);
+  text-align: left;
+  box-shadow: 0 18px 45px rgba(10, 10, 10, 0.28);
+
+  /* Ein- und Ausblenden im Seitentempo. visibility schaltet verzögert erst
+     nach dem Fade, damit das Panel beim Ausblenden nicht klickbar bleibt. */
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, var(--intro-rise));
+  transition: opacity var(--fade-panel) var(--ease-soft),
+              transform var(--fade-panel) var(--ease-soft),
+              visibility 0s linear var(--fade-panel);
+}
+
+.panel.is-open {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+  transition: opacity var(--fade-panel) var(--ease-soft),
+              transform var(--fade-panel) var(--ease-soft),
+              visibility 0s linear 0s;
+}
+
+.panel p {
+  margin: 0;
+}
+
+/* Der Zeiger bleibt über der Panelfläche der normale Pfeil. Ohne diese
+   Regel schlägt er über jedem Textblock in den Text-Cursor um — bei einem
+   Panel, das beim Hovern aufgeht, wirkt das unruhig, und es signalisiert
+   eine Eingabe, die es hier nicht gibt. Markieren und Kopieren bleibt
+   möglich, nur echte Links zeigen die Hand. */
+.panel,
+.panel * {
+  cursor: default;
+}
+
+.panel a {
+  cursor: pointer;
+}
+
+/* Contact-Panel sitzt mittig über der gesamten Icon-Reihe, nicht unter dem
+   Briefumschlag. Der Abstand von der Panel-Oberkante zur Tagline ist genau
+   so groß wie der zwischen Tagline und Hero-Zeile:
+
+     .actions beginnt --space-tagline-icons unter der Tagline (= Hero × 0.625)
+     das Panel soll  --space-hero-tagline  darunter beginnen (= Hero × 0.3125)
+     Differenz = Hero × 0.3125 = --space-hero-tagline, also genau so weit nach
+     oben verschoben.
+
+   Damit sich das Panel auf .actions bezieht statt auf seinen eigenen
+   Wrapper, ist dieser auf position: static gesetzt. */
+.action-wrap--contact {
+  position: static;
+}
+
+.panel--contact {
+  top: calc(-1 * var(--space-hero-tagline));
+  left: 50%;
+  width: min(23rem, calc(100vw - 2.5rem));
+  font-size: 15px;
+  /* Nur Opazität animieren — jede Bewegung würde die Ausrichtung stören. */
+  transform: translateX(-50%);
+}
+
+.panel--contact.is-open {
+  transform: translateX(-50%);
+}
+
+/* Über .panel--contact geschrieben, weil .panel p oben margin: 0 setzt und
+   allein mit .contact__lead spezifischer wäre. */
+.panel--contact .contact__lead {
+  margin-bottom: 1.1rem;
+  line-height: 1.55;
+}
+
+.contact__line + .contact__line {
+  margin-top: 0.2rem;
+}
+
+/* Mailadresse als sichtbarer Link, Telefonnummer optisch wie Text —
+   gleiche Logik wie auf den Rechtsseiten. */
+/* Mail- und Telefonlinks verhalten sich wie die Footer-Links: im Ruhezustand
+   ohne Unterstreichung, sie erscheint erst unter dem Zeiger. */
+.panel--contact a {
+  text-decoration: none;
+}
+
+.panel--contact a:hover,
+.panel--contact a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* 8. About-Me-Overlay ----------------------------------------------------- */
+/* Mittig im Viewport, dadurch oben und unten automatisch derselbe Abstand.
+   Der Footer bleibt darunter sichtbar.
+
+   Aufbau je Kapitel (von oben nach unten):
+     Medium  →  Text  →  angeschnittenes nächstes Kapitel (unscharf)
+   Jedes Kapitel ist so hoch wie das Overlay minus Anschnitt und rastet beim
+   Scrollen ein. Der Anschnitt ist kein separates Element, sondern der obere
+   Rand des echten nächsten Bildes: solange es nicht aufgedeckt ist, liegt
+   eine Weichzeichnung darauf, die beim Einrasten weichblendet. */
+
+.panel--about {
+  position: fixed;
+  top: 50%;
+  right: auto;
+  bottom: auto;
+  left: 50%;
+  width: var(--about-width);
+  max-width: none;
+  height: var(--about-height);
+  padding: 0;
+  overflow: hidden;
+  /* Nur Opazität animieren — ruhiger als eine zusätzliche Bewegung. */
+  transform: translate(-50%, -50%);
+}
+
+.panel--about.is-open {
+  transform: translate(-50%, -50%);
+}
+
+/* Scroll-Container */
+.about {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* proximity statt mandatory: Kapitel, die länger als eine Overlay-Höhe
+     sind, lassen sich sonst nicht durchscrollen. */
+  scroll-snap-type: y proximity;
+  scrollbar-width: none;
+}
+
+.about::-webkit-scrollbar {
+  display: none;
+}
+
+/* Ein Kapitel füllt mindestens die Overlay-Höhe minus Anschnitt, damit der
+   Anfang des nächsten Bildes unten hereinragt. Kapitel mit viel Text dürfen
+   darüber hinauswachsen — deshalb min-height statt height. */
+/* Rundum derselbe Innenrand. Dadurch ist der Abstand von Kapitel 1 zur
+   Oberkante des Overlays genauso groß wie der von Kapitel 4 zur Unterkante,
+   und zwischen zwei Kapiteln liegt immer dieselbe Luft (zweimal der Rand). */
+.story {
+  display: flex;
+  min-height: calc(100% - var(--about-peek));
+  padding: var(--about-frame);
+  scroll-snap-align: start;
+}
+
+/* Alle Kapitel außer dem letzten bekommen eine feste Höhe — Overlay minus
+   Anschnitt. Dadurch bleibt kein Rest im Kapitel übrig, die Abstände sind
+   überall gleich, und an jeder Grenze ragt verlässlich der Anfang des
+   nächsten Abschnitts herein. */
+.story:not(:last-child) {
+  height: calc(100% - var(--about-peek));
+}
+
+/* Bei den nebeneinander gesetzten Kapiteln bestimmt die Textspalte die Höhe.
+   Ist sie länger als das Bild, darf das Kapitel wachsen — sonst würde Text
+   abgeschnitten. Der Innenrand bleibt rundum gleich, die Abstände zwischen
+   den Kapiteln ändern sich dadurch nicht. */
+.story--split,
+.story--split:not(:last-child) {
+  height: auto;
+  min-height: calc(100% - var(--about-peek));
+}
+
+/* Das letzte Kapitel hat nichts mehr anzuschneiden. */
+.story:last-child {
+  min-height: 100%;
+  height: auto;
+}
+
+/* Reihenfolge im Markup: Text, dann Medium. Kapitel 1 und 4 stapeln
+   (Überschrift, Text, Bild darunter), Kapitel 2 und 3 stellen beides
+   nebeneinander — bei 2 liegt das Bild links, bei 3 rechts. */
+.story__frame {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(0.875rem, 2vh, 1.5rem);
+  width: 100%;
+  min-height: 0;
+}
+
+.story__text {
+  flex: 0 0 auto;
+  transition: opacity var(--fade) var(--ease-soft) 100ms,
+              filter var(--fade) var(--ease-soft) 100ms;
+}
+
+
+/* Enge Zeilenhöhe: bei den nebeneinander gesetzten Kapiteln liegt die
+   Oberkante der Überschrift damit auf der Oberkante des Bildes. Mit der
+   geerbten 1.6 säße sie rund 8px tiefer. */
+.story__title {
+  margin: 0 0 0.4rem;
+  font-size: clamp(1.0625rem, 1.6vw, 1.25rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.story__body {
+  margin: 0;
+  font-size: clamp(0.8125rem, 0.95vw, 0.875rem);
+  line-height: 1.5;
+}
+
+/* Absatzabstand. Muss spezifischer sein als .panel p { margin: 0 }. */
+.story__body + .story__body {
+  margin-top: 0.55rem;
+}
+
+/* Das Bild nimmt den Platz, den der Text übrig lässt — dadurch füllt jedes
+   Kapitel die Overlay-Fläche exakt aus, egal wie lang sein Text ist, und
+   das Bild wird so groß wie eben möglich. */
+/* Bild und Bildunterschrift bilden eine Einheit: <figure> übernimmt die
+   Rolle, die vorher das Medium im Flex-Layout hatte, das Medium selbst ist
+   jetzt der Bildkasten darin. */
+.story__figure {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.45rem;
+  min-height: 0;
+  width: 100%;
+  margin: 0;
+}
+
+.story__media {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 4px;
+  background-color: var(--color-dark);
+  transition: filter var(--fade) var(--ease-soft);
+}
+
+/* Motiv, Ort und Aufnahmedatum. Bündig mit der Außenkante des Bildes —
+   bei Kapitel 1 und 3 rechts, bei 2 und 4 links. Dadurch läuft die Zeile
+   immer von der Bildkante nach innen. */
+.story__caption {
+  flex: 0 0 auto;
+  font-size: clamp(0.6875rem, 0.85vw, 0.75rem);
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+  transition: opacity var(--fade) var(--ease-soft) 100ms,
+              filter var(--fade) var(--ease-soft) 100ms;
+}
+
+.story--caption-right .story__caption {
+  text-align: right;
+}
+
+.story--caption-left .story__caption {
+  text-align: left;
+}
+
+/* <picture> ist nur ein Container für die Format-Auswahl (AVIF/JPEG) —
+   display: contents nimmt es aus dem Layout, das <img> zählt direkt. */
+.story__media picture {
+  display: contents;
+}
+
+/* Nimmt <img> und <video> gleichermaßen auf. */
+/* Leichte, einheitliche Anmutung über alle vier Motive: die Aufnahmen
+   stammen aus verschiedenen Jahren, Kameras und Lichtsituationen. Etwas
+   zurückgenommene Sättigung und leicht angehobener Kontrast lassen sie als
+   eine Serie lesen, ohne die Farben zu opfern. Beim Hover geht die Sättigung
+   auf volle Stärke — das Bild wacht unter dem Zeiger auf. */
+.story__media img,
+.story__media video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.88) contrast(1.06) brightness(0.97);
+  transition: transform var(--fade) var(--ease-soft),
+              opacity var(--fade) var(--ease-soft),
+              filter var(--fade) var(--ease-soft);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .story.is-revealed .story__media:hover img,
+  .story.is-revealed .story__media:hover video {
+    filter: saturate(1.04) contrast(1.06) brightness(1);
+  }
+}
+
+/* --- Kapitel 2 und 3: Bild und Text nebeneinander -------------------- */
+/* align-items: stretch gibt der Textspalte automatisch dieselbe Höhe wie
+   das Bild, die Überschrift beginnt damit auf der Bildoberkante. */
+
+.story--split .story__frame {
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: clamp(1.25rem, 2.5vw, 2.25rem);
+}
+
+/* Kapitel 1 stellt das Bild voran — im Markup steht es dort bereits an
+   erster Stelle, es braucht also keine Umkehrung. Die Klasse dient nur der
+   Lesbarkeit und als Angriffspunkt für Feinheiten. */
+.story--media-first .story__frame {
+  flex-direction: column;
+}
+
+/* Kapitel 4: Bild links. Das Medium ist im Markup das zweite Element,
+   row-reverse zieht es nach vorn. */
+.story--media-left .story__frame {
+  flex-direction: row-reverse;
+}
+
+.story--split .story__figure {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+.story--split .story__media {
+  flex: 0 0 auto;
+  width: auto;
+  /* Exakt die Höhe eines Kapitel-Innenraums: Overlay minus Anschnitt minus
+     Innenrand oben und unten. So bleibt unter dem Hochformat kein Rest, und
+     der Abstand zum nächsten Kapitel ist derselbe wie bei den gestapelten. */
+  height: calc(var(--about-height) - var(--about-peek) - 2 * var(--about-frame));
+  max-height: none;
+  min-height: 0;
+  aspect-ratio: 4 / 5;
+}
+
+.story--split .story__text {
+  flex: 1 1 auto;
+  align-self: stretch;
+}
+
+/* --- Reveal ------------------------------------------------------------ */
+/* Kein Einrollen mehr, sondern ein weiches Auftauchen: die Weichzeichnung
+   löst sich auf, das Bild fährt minimal auf Maßstab zurück, der Text zieht
+   simultan nach. */
+
+.story:not(.is-revealed) .story__media {
+  filter: blur(14px);
+}
+
+.story:not(.is-revealed) .story__media img,
+.story:not(.is-revealed) .story__media video {
+  opacity: 0.65;
+  transform: scale(1.06);
+}
+
+.story:not(.is-revealed) .story__text,
+.story:not(.is-revealed) .story__caption {
+  opacity: 0.3;
+  filter: blur(5px);
+}
+
+.story.is-revealed .story__media {
+  filter: blur(0);
+}
+
+.story.is-revealed .story__media img,
+.story.is-revealed .story__media video {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.story.is-revealed .story__text,
+.story.is-revealed .story__caption {
+  opacity: 1;
+  filter: blur(0);
+}
+
+/* Leichter Zoom erst, wenn das Medium fertig aufgedeckt ist */
+@media (hover: hover) and (pointer: fine) {
+  .story.is-revealed .story__media:hover img,
+  .story.is-revealed .story__media:hover video {
+    transform: scale(1.06);
+  }
+}
+
+/* Schließen-Button */
+.panel__close {
+  position: absolute;
+  top: clamp(0.5rem, 1.5vw, 0.9rem);
+  right: clamp(0.5rem, 1.5vw, 0.9rem);
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background-color: var(--color-dark);
+  color: var(--color-light);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: opacity 160ms var(--ease-soft);
+}
+
+.panel__close:hover,
+.panel__close:focus-visible {
+  opacity: 0.7;
+}
+
+/* 9. Subseiten ------------------------------------------------------------ */
+
+/* Zurück-Link oben, der zweispaltige Block mittig im verbleibenden Raum. */
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  padding: 0.25rem 0;
+}
+
+/* Zurück-Pfeil oben links, oberhalb der deutschen Fassung. */
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+  font-size: 15px;
+  font-weight: 500;
+  text-decoration: none;
+  color: inherit;
+}
+
+.back-link:hover,
+.back-link:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.back-link .icon {
+  width: 0.95em;
+  height: 0.95em;
+}
+
+/* Zwei Spalten mit senkrechter Trennlinie mittig auf der Seite:
+   deutsche Fassung links, englische rechts. */
+.legal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1px 1fr;
+  column-gap: clamp(2rem, 5vw, 4.5rem);
+  align-items: stretch;
+  margin-block: auto; /* mittig im Raum unter dem Zurück-Link */
+}
+
+.legal-grid__rule {
+  background-color: currentColor;
+}
+
+/* Beide Fassungen rücken zur Trennlinie hin: der Abstand zur Linie ist nur
+   noch halb so groß wie bei mittiger Ausrichtung. Der Rest des freien
+   Platzes liegt außen.
+   (100% − Blockbreite) ist der freie Platz in der Spalte; ein Viertel davon
+   innen, per auto der Rest außen. */
+.legal {
+  --legal-width: 38rem;
+  /* Ein Viertel des freien Platzes läge bei mittiger Ausrichtung innen.
+     Davon nochmal 33 % abgezogen — die Fassungen rücken damit ein weiteres
+     Drittel an die Trennlinie heran. */
+  --legal-inner-gap: max(0px, calc((100% - var(--legal-width)) / 4 * 0.67));
+  max-width: var(--legal-width);
+}
+
+.legal-grid > .legal:first-child {
+  margin-left: auto;
+  margin-right: var(--legal-inner-gap);
+}
+
+.legal-grid > .legal:last-child {
+  margin-left: var(--legal-inner-gap);
+  margin-right: auto;
+}
+
+.legal__title {
+  margin: 0 0 0.55rem;
+  font-size: clamp(1.375rem, 2.6vw, 1.9rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  /* „Datenschutzerklärung" ist lang — darf umbrechen statt zu überlaufen. */
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+/* Abschnittsüberschriften. Die Ebene unterscheidet sich zwischen den
+   Spalten (h2 deutsch / h3 englisch, weil die englische Fassung unter einer
+   h2 hängt), das Aussehen ist über diese Klasse identisch. */
+.legal__heading {
+  margin: 0.7rem 0 0.2rem;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+}
+
+.legal p {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  /* Beide Rechtsseiten teilen sich diesen Wert. Etwas enger als der
+     Fließtext sonst, damit die Datenschutzerklärung samt Footer ohne
+     Scrollen auf eine Bildschirmhöhe passt — mehr geht bei diesem
+     Textumfang nicht, ohne dass der Footer unter die Kante rutscht. */
+  line-height: 1.4;
+}
+
+.legal p:last-child {
+  margin-bottom: 0;
+}
+
+/* Gleiches Verhalten wie im Footer und im Contact-Panel: keine statische
+   Unterstreichung, sie erscheint erst beim Überfahren.
+   font: inherit hält Safari auf iOS davon ab, Telefonnummern selbst
+   umzuformatieren. */
+.legal a {
+  color: inherit;
+  font: inherit;
+  text-decoration: none;
+}
+
+.legal a:hover,
+.legal a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Auf den Rechtsseiten rückt der Footer näher an den Text — der gewonnene
+   Platz geht in den Zeilenabstand. */
+.page--dark .footer {
+  margin-top: 1rem;
+}
+
+/* Die Datenschutzseite nutzt dieselbe Typografie wie das Impressum
+   (Schriftgrößen, Zeilenabstand, Abstände) — nur die Fließtexte stehen im
+   Blocksatz. Zeilen mit hartem Umbruch (Adressblock) bleiben davon
+   unberührt, die werden vom Browser nicht gedehnt. */
+.page--justify .legal p {
+  text-align: justify;
+}
+
+/* 10. Responsive ---------------------------------------------------------- */
+
+/* --- Tablet: Overlay nutzt mehr Fläche, sonst wirkt es verloren --------- */
+@media (max-width: 1024px) {
+  :root {
+    --about-width: min(88vw, 860px);
+    --about-height: min(80vh, 900px);
+  }
+}
+
+/* --- Rechtsseiten: Spalten stapeln ------------------------------------- */
+@media (max-width: 860px) {
+  .legal-grid {
+    grid-template-columns: 1fr;
+    row-gap: clamp(2rem, 6vh, 3.5rem);
+  }
+
+  .legal-grid__rule {
+    height: 1px;
+  }
+
+  .legal-grid > .legal:first-child,
+  .legal-grid > .legal:last-child {
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  /* Auf einer Bildschirmhöhe passt der Datenschutz gestapelt ohnehin nicht
+     mehr — dann lieber luftig lesbar. */
+  .legal p {
+    line-height: 1.55;
+    margin-bottom: 0.7rem;
+  }
+
+  .legal__heading {
+    margin: 1.25rem 0 0.3rem;
+  }
+}
+
+/* --- Telefon ----------------------------------------------------------- */
+@media (max-width: 700px) {
+  :root {
+    /* Overlay füllt die Fläche, der Footer bleibt darunter frei. */
+    --about-width: calc(100vw - 1.5rem);
+    /* Der Footer steht auf dem Telefon zweizeilig — entsprechend mehr
+       Platz unterhalb des Overlays freihalten. */
+    --about-height: calc(100svh - 7.5rem);
+    --about-frame: clamp(1rem, 4vw, 1.5rem);
+    --about-peek: calc(var(--about-frame) + 1.75rem);
+  }
+
+  /* Feste Kapitelhöhen aufheben: auf kleinen Schirmen hat Lesbarkeit
+     Vorrang vor dem gleichmäßigen Anschnitt. Kapitel dürfen wachsen. */
+  .story,
+  .story:not(:last-child) {
+    height: auto;
+    min-height: calc(100% - var(--about-peek));
+  }
+
+  /* Nebeneinander wird untereinander */
+  .story--split .story__frame,
+  .story--media-left .story__frame {
+    flex-direction: column;
+  }
+
+  .story--split .story__figure,
+  .story--split .story__media {
+    width: 100%;
+    align-self: stretch;
+  }
+
+  .story--split .story__media {
+    height: auto;
+    aspect-ratio: 4 / 5;
+    max-height: 46svh;
+  }
+
+  .story__media {
+    min-height: 9rem;
+  }
+
+  /* Lesegrößen statt der am Desktop kalibrierten Kompaktwerte */
+  .story__body {
+    font-size: 0.9375rem;
+    line-height: 1.55;
+  }
+
+  .story__title {
+    font-size: 1.125rem;
+  }
+
+  /* Blocksatz bricht auf schmalen Spalten auseinander */
+  .page--justify .legal p {
+    text-align: left;
+  }
+
+  /* Contact-Panel mittig im Viewport statt an der Icon-Reihe verankert */
+  .panel--contact {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: calc(100vw - 2.5rem);
+    max-width: none;
+    transform: translate(-50%, -50%);
+  }
+
+  .panel--contact.is-open {
+    transform: translate(-50%, -50%);
+  }
+
+  /* Footer untereinander, zentriert */
+  .footer {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+  }
+}
+
+/* --- Touch: größere Ziele, kein Hover-Zoom ----------------------------- */
+@media (hover: none) {
+  .panel__close {
+    width: 2.75rem;
+    height: 2.75rem;
+    font-size: 1.15rem;
+  }
+
+  /* Impuls-Scrollen im Overlay */
+  .about {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* --- Liegendes Telefon / sehr flache Fenster --------------------------- */
+@media (max-height: 520px) {
+  :root {
+    --about-height: calc(100svh - 3rem);
+    --about-peek: calc(var(--about-frame) + 1rem);
+  }
+
+  .hero__title {
+    font-size: clamp(2rem, 8vh, 3.5rem);
+  }
+
+  .actions {
+    margin-top: clamp(1rem, 4vh, 2rem);
+  }
+
+  .hero__tagline {
+    margin-top: clamp(0.5rem, 2vh, 1rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .about {
+    scroll-snap-type: none;
+  }
+
+  .story:not(.is-revealed) .story__media,
+  .story:not(.is-revealed) .story__text {
+    filter: none;
+    opacity: 1;
+  }
+}
