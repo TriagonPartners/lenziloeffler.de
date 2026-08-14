@@ -117,6 +117,13 @@
      sonst ragt nur grauer Rand herein statt des Bildanfangs. */
   --about-peek: calc(var(--about-frame) + 1.875rem);
 
+  /* Höhe, die einem Bildkasten innerhalb eines Kapitels maximal bleibt:
+     Overlay ohne Anschnitt und ohne Innenrand oben/unten. Bei den
+     nebeneinander gesetzten Kapiteln leitet sich daraus auch die
+     Spaltenbreite ab — Bild und Bildunterschrift sind dadurch immer gleich
+     breit (siehe .story--split .story__figure). */
+  --split-media-max-h: calc(var(--about-height) - var(--about-peek) - 2 * var(--about-frame));
+
   --panel-radius: 18px;
 }
 
@@ -130,6 +137,11 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  /* Android Chrome: verhindert, dass ein Zug nach unten die Seite neu lädt
+     (pull-to-refresh) — im geöffneten About-Overlay würde das mitten im Lesen
+     alles zurücksetzen. Die Seite selbst scrollt nicht, es geht also nichts
+     verloren. Auf iOS und am Desktop ohne Wirkung. */
+  overscroll-behavior-y: contain;
 }
 
 body {
@@ -734,6 +746,16 @@ body.is-preload *::after {
               filter var(--fade) var(--ease-soft) 100ms;
 }
 
+/* Eine Bildunterschrift (Kapitel 4) ist länger als die Bildbreite und bricht
+   deshalb überall um — am Desktop mitten im Ortsnamen, auf Tablets mit einem
+   einzelnen Mittelpunkt am Zeilenende. Beides liest sich wie ein Versehen.
+   Die beiden Sinnabschnitte im Markup stehen daher fest untereinander:
+   Personen, darunter Ort und Datum. Gleiche Höhe wie der automatische Umbruch,
+   nur an einer gewollten Stelle. */
+.story__caption--stacked > span {
+  display: block;
+}
+
 .story--caption-right .story__caption {
   text-align: right;
 }
@@ -798,10 +820,16 @@ body.is-preload *::after {
 
 /* Das Hochformat nimmt einen festen ANTEIL DER BREITE ein, die Höhe folgt
    aus dem Seitenverhältnis. Umgekehrt (Höhe zuerst) fraß das Bild auf hohen,
-   schmalen Fenstern die ganze Zeile und die Textspalte kollabierte. */
+   schmalen Fenstern die ganze Zeile und die Textspalte kollabierte.
+
+   42 % der Breite — aber nie mehr, als die verfügbare Höhe im 4:5-Format
+   trägt. Ohne diese zweite Grenze bliebe die Spalte bei 42 % stehen, während
+   aspect-ratio + max-height nur den Bildkasten schmaler machen: die
+   Bildunterschrift läge dann auf voller Spaltenbreite und damit neben dem
+   Bild statt darunter. Betrifft flache Fenster (Telefon quer). */
 .story--split .story__figure {
-  flex: 0 0 42%;
-  width: 42%;
+  flex: 0 0 auto;
+  width: min(42%, calc(var(--split-media-max-h) * 4 / 5));
 }
 
 .story--split .story__media {
@@ -811,7 +839,7 @@ body.is-preload *::after {
   min-height: 0;
   aspect-ratio: 4 / 5;
   /* Nie höher als der Innenraum eines Kapitels. */
-  max-height: calc(var(--about-height) - var(--about-peek) - 2 * var(--about-frame));
+  max-height: var(--split-media-max-h);
 }
 
 .story--split .story__text {
@@ -1064,25 +1092,50 @@ body.is-preload *::after {
     justify-content: flex-end;
   }
 
+  /* Bild und Bildunterschrift bleiben eine Einheit: die Spalte ist genau so
+     breit wie der Bildkasten und sitzt mittig im Kapitel.
+
+     Vorher lief die Spalte über die ganze Overlay-Breite, während
+     aspect-ratio + max-height nur den Bildkasten schmaler machten. Die
+     Bildunterschrift richtete sich dadurch an der Overlay-Kante aus statt an
+     der Bildkante — bei Kapitel 3 (rechtsbündig) stand sie sichtbar neben
+     dem Bild, bei Kapitel 4 lief sie darüber hinaus. Auf iPad und
+     Android-Tablets im Hochformat war das der auffällige Fall.
+
+     Zwei Werte je Eigenschaft: ältere Android-Browser ohne svh (Chrome < 108,
+     Samsung Internet < 21, alte WebViews) nehmen die vh-Zeile und ignorieren
+     die zweite. Ohne den Rückfall fiele dort die ganze Deckelung aus. */
   .story--split .story__figure {
     flex: 0 0 auto;
-    width: 100%;
-    align-self: stretch;
+    align-self: center;
+    width: min(100%, calc(52vh * 4 / 5));
+    width: min(100%, calc(52svh * 4 / 5));
   }
 
   .story--split .story__media {
     width: 100%;
     aspect-ratio: 4 / 5;
+    max-height: 52vh;
     max-height: 52svh;
   }
 
   /* Querformate behalten ihr Seitenverhältnis, bekommen aber eine
-     Mindesthöhe, damit sie nicht zum Streifen schrumpfen. */
+     Mindesthöhe, damit sie nicht zum Streifen schrumpfen. Spaltenbreite nach
+     derselben Regel wie oben — greift auf niedrigen, breiten Schirmen
+     (Android-Tablet quer bei ≤ 820px Breite). */
+  .story:not(.story--split) .story__figure {
+    flex: 0 0 auto;
+    align-self: center;
+    width: min(100%, calc(40vh * 16 / 9));
+    width: min(100%, calc(40svh * 16 / 9));
+  }
+
   .story:not(.story--split) .story__media {
     flex: 0 0 auto;
     height: auto;
     aspect-ratio: 16 / 9;
     min-height: 0;
+    max-height: 40vh;
     max-height: 40svh;
   }
 
@@ -1158,7 +1211,16 @@ body.is-preload *::after {
   :root {
     /* Overlay füllt die Fläche, der zweizeilige Footer bleibt darunter frei. */
     --about-width: calc(100vw - 1.5rem);
-    --about-height: calc(100svh - 7.5rem);
+    /* vh als Rückfall: kennt ein Browser svh nicht, wäre der Wert erst beim
+       Einsetzen ungültig — die Overlay-Höhe fiele komplett aus (betrifft
+       ältere Android-Browser, siehe Abschnitt 820px). */
+    --about-height: calc(100vh - 7.5rem);
+  }
+
+  @supports (height: 100svh) {
+    :root {
+      --about-height: calc(100svh - 7.5rem);
+    }
   }
 
   /* Contact-Panel bleibt an der Icon-Reihe verankert, genau wie am Desktop.
@@ -1193,8 +1255,14 @@ body.is-preload *::after {
    deshalb rückt es in die Bildschirmmitte. */
 @media (max-height: 560px) {
   :root {
-    --about-height: calc(100svh - 3rem);
+    --about-height: calc(100vh - 3rem);
     --about-peek: calc(var(--about-frame) + 1rem);
+  }
+
+  @supports (height: 100svh) {
+    :root {
+      --about-height: calc(100svh - 3rem);
+    }
   }
 
   .panel--contact,

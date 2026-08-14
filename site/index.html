@@ -175,7 +175,14 @@
                            style="object-position: center 62%">
                     </picture>
                   </div>
-                  <figcaption class="story__caption">Manuel Beck &amp; Nicolas Lenzi Loeffler · Autodromo Nazionale Monza · August 2, 2026</figcaption>
+                  <!-- Zu lang für die Bildbreite, bricht in jeder Ansicht um.
+                       Deshalb zwei feste Sinnabschnitte statt eines beliebigen
+                       Umbruchs mitten im Ortsnamen — siehe
+                       .story__caption--stacked. -->
+                  <figcaption class="story__caption story__caption--stacked">
+                    <span>Manuel Beck &amp; Nicolas Lenzi Loeffler</span>
+                    <span>Autodromo Nazionale Monza · August 2, 2026</span>
+                  </figcaption>
                 </figure>
               </div>
             </article>

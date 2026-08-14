@@ -1,7 +1,7 @@
 # manuel-beck.com — Betrieb und Deployment
 
 Kurzanleitung für alles, was mit der Live-Seite zu tun hat.
-Stand: 13. August 2026.
+Stand: 14. August 2026.
 
 ---
 
@@ -134,6 +134,49 @@ dann wären Impressum und Datenschutz wieder tot.
 
 **Vor dem nächsten Terraform-Lauf klären.** Wer auch immer den Terraform-Code
 betreut, sollte die Function dort nachtragen.
+
+---
+
+## Darstellung auf Tablets, Telefonen und Surface
+
+Es gibt keine eigenen Fassungen je Gerät, sondern vier Schwellen in
+`site/assets/css/style.css` (Abschnitt 10). Android, iOS und Windows laufen
+durch dieselben Regeln — unterschieden wird nach Fenstergröße und Eingabeart,
+nie nach Betriebssystem.
+
+| Schwelle | Wirkung | Typische Geräte |
+|---|---|---|
+| `max-width: 1024px` | Overlay nutzt mehr Fläche | iPad quer, Android-Tablet quer |
+| `max-width: 820px` | Kapitel 3 und 4 stapeln: Bild oben, Text darunter | iPad Air 2 hoch, Android-Tablets hoch, alle Telefone |
+| `max-width: 700px` | Overlay füllt die Fläche, Footer wird zweizeilig | Telefone |
+| `max-height: 560px` | Contact-Panel in die Bildschirmmitte | Telefon quer |
+| `hover: none` | größere Tippziele, kein Hover-Zoom | alles mit Touch |
+
+Surface-Geräte brauchen nichts Eigenes: im Hochformat (912 px) greift die
+1024er-Schwelle, quer laufen sie wie ein Desktop. Mit angestecktem Stift oder
+Maus melden sie `pointer: fine` und bekommen automatisch die Hover-Effekte,
+im Tablet-Modus nicht.
+
+**Bild und Bildunterschrift gehören zusammen.** Die Spalte einer `figure` ist
+immer genau so breit wie der Bildkasten darin — bei den nebeneinander
+gesetzten Kapiteln über `min(42%, Höhe × 4/5)`, gestapelt über
+`min(100%, 52svh × 4/5)`. Ohne diese zweite Grenze bleibt die Spalte breit,
+während `aspect-ratio` zusammen mit `max-height` nur das Bild schmaler macht:
+Die Bildunterschrift richtet sich dann an der Overlay-Kante aus und steht
+sichtbar neben dem Bild statt darunter. Genau das war am 14. August 2026 auf
+dem iPad Air 2 zu sehen (Kapitel 3 und 4).
+
+**`svh` immer mit `vh`-Rückfall.** Ältere Android-Browser (Chrome < 108,
+Samsung Internet < 21, alte WebViews) kennen die Einheit nicht. Bei einer
+normalen Eigenschaft steht deshalb zuerst die `vh`-Zeile, bei
+Custom Properties übernimmt `@supports (height: 100svh)` die neue Fassung —
+sonst fällt die betroffene Angabe dort ersatzlos aus.
+
+**Vor Ort prüfen ohne Geräte.** macOS lässt Chrome-Fenster nicht beliebig
+schmal werden; ein Screenshot mit `--window-size=412,776` zeigt deshalb eine
+zu breite Seite. Verlässlich wird es mit einem `<iframe>` in der Zielgröße:
+Media Queries und `vh`/`svh`/`vw` beziehen sich darauf und nicht auf das
+Fenster.
 
 ---
 
