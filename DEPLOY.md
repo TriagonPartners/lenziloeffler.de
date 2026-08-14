@@ -38,6 +38,18 @@ Oder bequemer, mit Vorschau und Rückfrage:
 | `--exclude "*.md"` | hält interne Notizen (README-Dateien) aus dem Netz |
 | `create-invalidation --paths "/*"` | leert den CloudFront-Cache, sonst sehen Besucher bis zu 24 h die alte Version |
 
+**Wichtig: Cache-Regeln nicht weglassen.** Wer nur den einfachen `s3 sync`
+laufen lässt, lädt die Dateien **ohne** `Cache-Control` hoch. Browser raten
+dann selbst, wie lange sie eine Datei behalten dürfen — und raten bei einer
+älteren Datei sehr lange. Ergebnis: Besucher sehen tagelang die alte Seite,
+obwohl der Bucket längst die neue enthält. Genau das passierte am
+13. August 2026. `deploy.sh` setzt die Regeln korrekt:
+
+| Dateien | Regel | Warum |
+|---|---|---|
+| HTML, CSS, JS | `no-cache` | immer gegenprüfen; mit ETag kostet das nur ein 304, eine neue Fassung kommt sofort an |
+| Bilder, Schrift, Favicon | `public, max-age=604800` | ändern sich selten, eine Woche im Cache spart Ladezeit |
+
 Nach der Invalidierung dauert es etwa 30 Sekunden, bis die Änderung weltweit
 sichtbar ist.
 

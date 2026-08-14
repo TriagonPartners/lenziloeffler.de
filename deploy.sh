@@ -59,6 +59,24 @@ esac
 
 echo
 echo "Lade hoch …"
+
+# Cache-Regeln müssen beim Upload mitgegeben werden, sonst raten Browser
+# selbst — und raten bei alten Dateien sehr lange. Deshalb zwei Durchgänge
+# mit unterschiedlichen Vorgaben, danach ein dritter fürs Aufräumen.
+
+# Bilder, Schrift, Favicon ändern sich selten: eine Woche im Cache.
+aws s3 cp "$SITE_DIR/" "s3://$BUCKET" --recursive --quiet --exclude "*" \
+  --include "*.avif" --include "*.jpg" --include "*.png" \
+  --include "*.ico" --include "*.svg" --include "*.woff2" \
+  --cache-control "public, max-age=604800"
+
+# HTML, CSS und JS immer gegenprüfen lassen. Mit ETag kostet das nur ein
+# 304 und sorgt dafür, dass eine neue Fassung sofort ankommt.
+aws s3 cp "$SITE_DIR/" "s3://$BUCKET" --recursive --quiet --exclude "*" \
+  --include "*.html" --include "*.css" --include "*.js" \
+  --cache-control "no-cache"
+
+# Was lokal nicht mehr existiert, aus dem Bucket entfernen.
 aws s3 sync "$SITE_DIR/" "s3://$BUCKET" --delete --exclude "*.md"
 
 # --- Cache leeren ---------------------------------------------------------

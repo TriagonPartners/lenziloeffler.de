@@ -60,6 +60,11 @@
                 <figure class="story__figure">
                   <div class="story__media">
                     <picture>
+                      <!-- Auf schmalen Schirmen ein eigener 16:9-Ausschnitt: das
+                           panoramische Band würde dort horizontal beschnitten und
+                           die Fahnenlinie zerschneiden. -->
+                      <source media="(max-width: 820px)" srcset="/assets/images/about-me/chicago-mobile.avif" type="image/avif">
+                      <source media="(max-width: 820px)" srcset="/assets/images/about-me/chicago-mobile.jpg" type="image/jpeg">
                       <source srcset="/assets/images/about-me/chicago.avif" type="image/avif">
                       <img src="/assets/images/about-me/chicago.jpg" alt="DuSable Bridge and North Michigan Avenue in Chicago"
                            width="1600" height="400" decoding="async">
@@ -110,7 +115,7 @@
             <article class="story story--split story--caption-right" data-story>
               <div class="story__frame">
                 <div class="story__text">
-                  <h2 class="story__title">Augsburg — Balance, Perspective &amp; Building My Own</h2>
+                  <h2 class="story__title">Augsburg — Balance &amp; Building from Scratch</h2>
                   <p class="story__body">
                     Augsburg had always been close to home, and so had FC Augsburg. When the club reached the Bundesliga, a season ticket followed. My career in the technology ecosystem had already started in Munich, where strong results and the trust that came with them opened up an internal opportunity in Augsburg. What started as an idea became reality surprisingly fast. I actively pursued the opportunity, moved to Augsburg and continued within an already well-running setup, while my client work increasingly expanded beyond Munich across Germany.
                   </p>
@@ -141,7 +146,7 @@
             <article class="story story--split story--media-left story--caption-left" data-story>
               <div class="story__frame">
                 <div class="story__text">
-                  <h2 class="story__title">Motorsport — Performance Ecosystems in Practice</h2>
+                  <h2 class="story__title">Motorsport — Building Around Performance</h2>
                   <p class="story__body">
                     Sport never really went away. I still play basketball and go for a run — and more recently discovered motorsport through supporting a young driver from Munich competing in a Formula 3 racing series.
                   </p>

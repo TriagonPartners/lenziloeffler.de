@@ -553,6 +553,24 @@ body.is-preload *::after {
   text-underline-offset: 3px;
 }
 
+/* Der Inhalt klart auf wie im About-Overlay: das Panel selbst blendet zügig
+   ein (--fade-panel), der Text löst sich darin über --fade aus der
+   Weichzeichnung. Gleiche Dauer, gleiche Kurve, gleicher Versatz wie bei den
+   Kapiteltexten. */
+.panel--contact .contact__lead,
+.panel--contact .contact__line {
+  opacity: 0.3;
+  filter: blur(5px);
+  transition: opacity var(--fade) var(--ease-soft) 100ms,
+              filter var(--fade) var(--ease-soft) 100ms;
+}
+
+.panel--contact.is-open .contact__lead,
+.panel--contact.is-open .contact__line {
+  opacity: 1;
+  filter: blur(0);
+}
+
 /* 8. About-Me-Overlay ----------------------------------------------------- */
 /* Mittig im Viewport, dadurch oben und unten automatisch derselbe Abstand.
    Der Footer bleibt darunter sichtbar.
@@ -778,21 +796,22 @@ body.is-preload *::after {
   flex-direction: row-reverse;
 }
 
+/* Das Hochformat nimmt einen festen ANTEIL DER BREITE ein, die Höhe folgt
+   aus dem Seitenverhältnis. Umgekehrt (Höhe zuerst) fraß das Bild auf hohen,
+   schmalen Fenstern die ganze Zeile und die Textspalte kollabierte. */
 .story--split .story__figure {
-  flex: 0 0 auto;
-  width: auto;
+  flex: 0 0 42%;
+  width: 42%;
 }
 
 .story--split .story__media {
   flex: 0 0 auto;
-  width: auto;
-  /* Exakt die Höhe eines Kapitel-Innenraums: Overlay minus Anschnitt minus
-     Innenrand oben und unten. So bleibt unter dem Hochformat kein Rest, und
-     der Abstand zum nächsten Kapitel ist derselbe wie bei den gestapelten. */
-  height: calc(var(--about-height) - var(--about-peek) - 2 * var(--about-frame));
-  max-height: none;
+  width: 100%;
+  height: auto;
   min-height: 0;
   aspect-ratio: 4 / 5;
+  /* Nie höher als der Innenraum eines Kapitels. */
+  max-height: calc(var(--about-height) - var(--about-peek) - 2 * var(--about-frame));
 }
 
 .story--split .story__text {
@@ -1011,11 +1030,99 @@ body.is-preload *::after {
 
 /* 10. Responsive ---------------------------------------------------------- */
 
-/* --- Tablet: Overlay nutzt mehr Fläche, sonst wirkt es verloren --------- */
+/* --- Tablet quer: Overlay nutzt mehr Fläche ---------------------------- */
 @media (max-width: 1024px) {
   :root {
-    --about-width: min(88vw, 860px);
-    --about-height: min(80vh, 900px);
+    --about-width: min(90vw, 900px);
+    --about-height: min(82vh, 900px);
+  }
+}
+
+/* --- Ab hier stapeln die nebeneinander gesetzten Kapitel ---------------
+   Deckt Tablets im Hochformat (768px) und alle Telefone ab. Nebeneinander
+   bliebe die Textspalte zu schmal, um noch angenehm zu lesen. */
+@media (max-width: 820px) {
+  :root {
+    --about-frame: clamp(1.25rem, 5vw, 1.75rem);
+    --about-peek: calc(var(--about-frame) + 1.75rem);
+  }
+
+  /* Feste Kapitelhöhen aufheben — auf kleinen Schirmen hat Lesbarkeit
+     Vorrang vor dem gleichmäßigen Anschnitt. */
+  .story,
+  .story:not(:last-child) {
+    height: auto;
+    min-height: calc(100% - var(--about-peek));
+  }
+
+  /* column-reverse stellt das Bild voran — im Markup steht bei diesen
+     Kapiteln der Text zuerst. Nebeneinander trägt der Text die Spalte, aber
+     untereinander würde eine Textwand vor dem Bild stehen. */
+  .story--split .story__frame,
+  .story--media-left .story__frame {
+    flex-direction: column-reverse;
+    justify-content: flex-end;
+  }
+
+  .story--split .story__figure {
+    flex: 0 0 auto;
+    width: 100%;
+    align-self: stretch;
+  }
+
+  .story--split .story__media {
+    width: 100%;
+    aspect-ratio: 4 / 5;
+    max-height: 52svh;
+  }
+
+  /* Querformate behalten ihr Seitenverhältnis, bekommen aber eine
+     Mindesthöhe, damit sie nicht zum Streifen schrumpfen. */
+  .story:not(.story--split) .story__media {
+    flex: 0 0 auto;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    min-height: 0;
+    max-height: 40svh;
+  }
+
+  /* Kleiner als am Desktop kalibriert — dort trägt die Zeilenlänge, hier
+     wirkte derselbe Grad zu dominant neben den Bildern. */
+  .story__body {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+
+  .story__title {
+    font-size: 1.0625rem;
+  }
+
+  .story__caption {
+    font-size: 0.6875rem;
+  }
+
+  /* Ruhigeres Scrollen: kein Einrasten, schwächere Weichzeichnung.
+     Grosse blur()-Flächen kosten auf Mobilgeräten spürbar Bildrate. */
+  .about {
+    scroll-snap-type: none;
+  }
+
+  .story {
+    scroll-snap-align: none;
+  }
+
+  .story:not(.is-revealed) .story__media {
+    filter: blur(8px);
+  }
+
+  .story:not(.is-revealed) .story__text,
+  .story:not(.is-revealed) .story__caption {
+    filter: blur(3px);
+  }
+
+  /* Blocksatz bricht auf schmalen Spalten auseinander */
+  .page--justify .legal p {
+    text-align: left;
   }
 }
 
@@ -1036,8 +1143,6 @@ body.is-preload *::after {
     margin-right: 0;
   }
 
-  /* Auf einer Bildschirmhöhe passt der Datenschutz gestapelt ohnehin nicht
-     mehr — dann lieber luftig lesbar. */
   .legal p {
     line-height: 1.55;
     margin-bottom: 0.7rem;
@@ -1051,72 +1156,15 @@ body.is-preload *::after {
 /* --- Telefon ----------------------------------------------------------- */
 @media (max-width: 700px) {
   :root {
-    /* Overlay füllt die Fläche, der Footer bleibt darunter frei. */
+    /* Overlay füllt die Fläche, der zweizeilige Footer bleibt darunter frei. */
     --about-width: calc(100vw - 1.5rem);
-    /* Der Footer steht auf dem Telefon zweizeilig — entsprechend mehr
-       Platz unterhalb des Overlays freihalten. */
     --about-height: calc(100svh - 7.5rem);
-    --about-frame: clamp(1rem, 4vw, 1.5rem);
-    --about-peek: calc(var(--about-frame) + 1.75rem);
   }
 
-  /* Feste Kapitelhöhen aufheben: auf kleinen Schirmen hat Lesbarkeit
-     Vorrang vor dem gleichmäßigen Anschnitt. Kapitel dürfen wachsen. */
-  .story,
-  .story:not(:last-child) {
-    height: auto;
-    min-height: calc(100% - var(--about-peek));
-  }
-
-  /* Nebeneinander wird untereinander */
-  .story--split .story__frame,
-  .story--media-left .story__frame {
-    flex-direction: column;
-  }
-
-  .story--split .story__figure,
-  .story--split .story__media {
-    width: 100%;
-    align-self: stretch;
-  }
-
-  .story--split .story__media {
-    height: auto;
-    aspect-ratio: 4 / 5;
-    max-height: 46svh;
-  }
-
-  .story__media {
-    min-height: 9rem;
-  }
-
-  /* Lesegrößen statt der am Desktop kalibrierten Kompaktwerte */
-  .story__body {
-    font-size: 0.9375rem;
-    line-height: 1.55;
-  }
-
-  .story__title {
-    font-size: 1.125rem;
-  }
-
-  /* Blocksatz bricht auf schmalen Spalten auseinander */
-  .page--justify .legal p {
-    text-align: left;
-  }
-
-  /* Contact-Panel mittig im Viewport statt an der Icon-Reihe verankert */
+  /* Contact-Panel bleibt an der Icon-Reihe verankert, genau wie am Desktop.
+     Vorher war es im Viewport zentriert und lag damit auf der Hero-Zeile. */
   .panel--contact {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    width: calc(100vw - 2.5rem);
-    max-width: none;
-    transform: translate(-50%, -50%);
-  }
-
-  .panel--contact.is-open {
-    transform: translate(-50%, -50%);
+    width: min(23rem, calc(100vw - 2.5rem));
   }
 
   /* Footer untereinander, zentriert */
@@ -1135,17 +1183,28 @@ body.is-preload *::after {
     font-size: 1.15rem;
   }
 
-  /* Impuls-Scrollen im Overlay */
   .about {
     -webkit-overflow-scrolling: touch;
   }
 }
 
-/* --- Liegendes Telefon / sehr flache Fenster --------------------------- */
-@media (max-height: 520px) {
+/* --- Sehr flache Fenster (Telefon quer) --------------------------------
+   Hier reicht der Platz unter der Tagline nicht mehr für das Contact-Panel,
+   deshalb rückt es in die Bildschirmmitte. */
+@media (max-height: 560px) {
   :root {
     --about-height: calc(100svh - 3rem);
     --about-peek: calc(var(--about-frame) + 1rem);
+  }
+
+  .panel--contact,
+  .panel--contact.is-open {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    width: min(23rem, calc(100vw - 2.5rem));
+    max-width: none;
+    transform: translate(-50%, -50%);
   }
 
   .hero__title {
@@ -1175,7 +1234,8 @@ body.is-preload *::after {
   }
 
   .story:not(.is-revealed) .story__media,
-  .story:not(.is-revealed) .story__text {
+  .story:not(.is-revealed) .story__text,
+  .story:not(.is-revealed) .story__caption {
     filter: none;
     opacity: 1;
   }
