@@ -180,6 +180,12 @@
      breit (siehe .story--split .story__figure). */
   --split-media-max-h: calc(var(--about-height) - var(--about-peek) - 2 * var(--about-frame));
 
+  /* Linienstärke der Pop-up-Umrandung. Ausgangswert war der verwendete Wert
+     der oberen Linie des User-Pop-ups: 0,5px auf einem Retina-Schirm.
+     Minus 10 % ergibt 0,45px, gleich für alle drei Fenster und alle vier
+     Seiten. */
+  --panel-border: 0.45px;
+
   --panel-radius: 18px;
 }
 
@@ -680,7 +686,7 @@ body.is-preload *::after {
   width: max-content;
   max-width: min(520px, calc(100vw - 2.5rem));
   padding: clamp(1.25rem, 3vw, 1.75rem);
-  border: 0.25px solid var(--color-yellow);
+  border: var(--panel-border) solid var(--color-yellow);
   border-radius: var(--panel-radius);
   background-color: var(--color-dark);
   color: var(--color-light);
@@ -770,7 +776,7 @@ body.is-preload *::after {
                   + var(--hero-size) * var(--claim-descent)));
   bottom: calc(50% + var(--logo-height) / 2);
   left: 50%;
-  width: min(27.6rem, calc(100vw - 2.5rem));   /* 23rem × 1,2 */
+  width: min(27.625rem, calc(100vw - 2.5rem));  /* 23rem × 1,2, auf 442px gerundet */
   /* Senkrecht +20 %: gemessene 240,03px Panelhöhe × 1,2 = 288,04px. Bei
      441,6px Breite braucht der Text 160,78px, die Differenz verteilt sich zu
      gleichen Teilen auf oben und unten — 63,63px = 3,977rem.
@@ -878,6 +884,11 @@ body.is-preload *::after {
   bottom: auto;
   left: 50%;
   width: var(--about-width);
+  /* Auf ganze Pixel gerundet: sonst landen die senkrechten Kanten des
+     zentrierten Fensters auf halben Gerätepixeln, und die Umrandung wird dort
+     über zwei Pixel verteilt gezeichnet — sie sähe dünner aus als oben und
+     unten. Ältere Browser ohne round() verwerfen nur diese zweite Zeile. */
+  width: round(down, var(--about-width), 2px);
   max-width: none;
   height: var(--about-height);
   padding: 0;
@@ -1223,11 +1234,7 @@ body.is-preload *::after {
   grid-template-columns: 1fr 1px 1fr;
   column-gap: clamp(2rem, 5vw, 4.5rem);
   align-items: stretch;
-  /* Beide Rechtsseiten beginnen direkt unter dem Zurück-Link. Vorher stand
-     das Impressum mittig im freien Raum und die Datenschutzerklärung oben —
-     die Überschriften lagen dadurch beim Wechseln zwischen den Seiten 252px
-     auseinander. Jetzt starten alle Überschriften auf derselben Höhe. */
-  margin-block: clamp(1rem, 3vh, 2.5rem) 0;
+  margin-block: auto; /* mittig im Raum unter dem Zurück-Link */
 }
 
 .legal-grid__rule {
