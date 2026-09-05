@@ -34,9 +34,6 @@
   --color-ink: #0A1F33;
   --color-dark: #0A1F33;
   --color-light: #E2E2E2;
-  /* Rubinrot aus der Wortmarke — bislang nur dort verwendet, jetzt auch als
-     Umrandung des ersten Pop-ups. */
-  --color-ruby: #770B23;
 
   /* Akzentfarben — ausschließlich für die Symbolfläche des jeweiligen Icons
      im Hover-Zustand. Sonst nirgends verwendet.
@@ -182,12 +179,6 @@
      Spaltenbreite ab — Bild und Bildunterschrift sind dadurch immer gleich
      breit (siehe .story--split .story__figure). */
   --split-media-max-h: calc(var(--about-height) - var(--about-peek) - 2 * var(--about-frame));
-
-  /* Umrandung der Pop-ups: CDF-Hellgrau. Linienstärke — Ausgangswert war der
-     verwendete Wert der oberen Linie des User-Pop-ups: 0,5px auf einem
-     Retina-Schirm. Minus 10 % ergibt 0,45px, gleich für alle drei Fenster
-     und alle vier Seiten. */
-  --panel-border: 0.45px;
 
   --panel-radius: 18px;
 }
@@ -376,11 +367,12 @@ body.is-preload *::after {
   color: var(--color-yellow);
 }
 
-/* Rechtsseiten: CDF-Dunkelblau als Grund, CDF-Hellgrau für Text, Trennlinie
-   und Zurück-Pfeil (der Pfeil ist eine Maske und nimmt currentColor an). */
+/* Rechtsseiten: CDF-Hellgrau als Grund, CDF-Dunkelblau für Text, Trennlinie
+   und Zurück-Pfeil (der Pfeil ist eine Maske und nimmt currentColor an).
+   Die Textfarbe muss mitwechseln, sonst stünde Hellgrau auf Hellgrau. */
 .page--dark {
-  background-color: var(--color-dark);
-  color: var(--color-light);
+  background-color: var(--color-light);
+  color: var(--color-dark);
 }
 
 /* Hero: eine zentrierte Flex-Column — Hero Line, Tagline und Icon-Reihe
@@ -689,8 +681,6 @@ body.is-preload *::after {
   width: max-content;
   max-width: min(520px, calc(100vw - 2.5rem));
   padding: clamp(1.25rem, 3vw, 1.75rem);
-  /* Farbe je Fenster, siehe unten. */
-  border: var(--panel-border) solid var(--color-light);
   border-radius: var(--panel-radius);
   background-color: var(--color-dark);
   color: var(--color-light);
@@ -714,21 +704,6 @@ body.is-preload *::after {
   transition: opacity var(--fade-panel) var(--ease-soft),
               transform var(--fade-panel) var(--ease-soft),
               visibility 0s linear 0s;
-}
-
-/* Umrandung je Pop-up: User rubinrot, Racing weiß, Contact hellgrau.
-   Das Racing-Panel trägt im Markup auch .panel--about, deshalb schließt die
-   erste Regel es ausdrücklich aus. */
-.panel--about:not(.panel--racing) {
-  border-color: var(--color-ruby);
-}
-
-.panel--racing {
-  border-color: #FFFFFF;
-}
-
-.panel--contact {
-  border-color: var(--color-light);
 }
 
 .panel p {
@@ -795,7 +770,7 @@ body.is-preload *::after {
                   + var(--hero-size) * var(--claim-descent)));
   bottom: calc(50% + var(--logo-height) / 2);
   left: 50%;
-  width: min(27.625rem, calc(100vw - 2.5rem));  /* 23rem × 1,2, auf 442px gerundet */
+  width: min(27.6rem, calc(100vw - 2.5rem));   /* 23rem × 1,2 */
   /* Senkrecht +20 %: gemessene 240,03px Panelhöhe × 1,2 = 288,04px. Bei
      441,6px Breite braucht der Text 160,78px, die Differenz verteilt sich zu
      gleichen Teilen auf oben und unten — 63,63px = 3,977rem.
@@ -903,11 +878,6 @@ body.is-preload *::after {
   bottom: auto;
   left: 50%;
   width: var(--about-width);
-  /* Auf ganze Pixel gerundet: sonst landen die senkrechten Kanten des
-     zentrierten Fensters auf halben Gerätepixeln, und die Umrandung wird dort
-     über zwei Pixel verteilt gezeichnet — sie sähe dünner aus als oben und
-     unten. Ältere Browser ohne round() verwerfen nur diese zweite Zeile. */
-  width: round(down, var(--about-width), 2px);
   max-width: none;
   height: var(--about-height);
   padding: 0;
