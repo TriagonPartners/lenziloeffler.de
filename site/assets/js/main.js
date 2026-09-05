@@ -1,5 +1,5 @@
 /**
- * manuel-beck.com
+ * lenziloeffler.de
  *
  * 1) Panel-Logik (About Me / Contact)
  *
@@ -36,13 +36,21 @@
     document.querySelectorAll('[data-panel-trigger]')
   );
 
+  var aboutPanel = document.getElementById('panel-about');
+  var racingPanel = document.getElementById('panel-racing');
+
   if (!triggers.length) return;
 
   var panels = triggers.map(function (wrap) {
+    var button = wrap.querySelector('.action');
+    // Das Panel muss nicht im Wrapper liegen: das Contact-Panel steht im
+    // Logo-Slot, damit es sich dort exakt einpassen kann. aria-controls ist
+    // ohnehin gesetzt und dient hier als Verweis.
+    var id = button && button.getAttribute('aria-controls');
     return {
       wrap: wrap,
-      button: wrap.querySelector('.action'),
-      panel: wrap.querySelector('.panel'),
+      button: button,
+      panel: (id && document.getElementById(id)) || wrap.querySelector('.panel'),
       openTimer: null
     };
   });
@@ -56,7 +64,7 @@
     });
     item.panel.classList.add('is-open');
     item.button.setAttribute('aria-expanded', 'true');
-    if (item.panel === aboutPanel) startAbout();
+    if (item.panel.classList.contains('panel--about')) startAbout(item.panel);
   }
 
   function close(item) {
@@ -64,7 +72,7 @@
     if (!isOpen(item)) return;
     item.panel.classList.remove('is-open');
     item.button.setAttribute('aria-expanded', 'false');
-    if (item.panel === aboutPanel) resetAbout();
+    if (item.panel.classList.contains('panel--about')) resetAbout(item.panel);
   }
 
   function closeAll() {
@@ -143,23 +151,19 @@
 
   /* --- About-Overlay: Scroll-Reveal ------------------------------------ */
 
-  var aboutPanel = document.getElementById('panel-about');
-  var scroller = aboutPanel && aboutPanel.querySelector('[data-about-scroller]');
-  var stories = scroller
-    ? Array.prototype.slice.call(scroller.querySelectorAll('[data-story]'))
-    : [];
-  var observer = null;
-  var revealTimer = null;
-
-  function startAbout() {
+  function startAbout(panel) {
+    var scroller = panel.querySelector('[data-about-scroller]');
+    var stories = scroller
+      ? Array.prototype.slice.call(scroller.querySelectorAll('[data-story]'))
+      : [];
     if (!stories.length) return;
 
-    resetAbout();
+    resetAbout(panel);
 
     // Erst nach dem Panel-Fade beobachten — sonst würde das erste Kapitel
     // aufdecken, während das Overlay noch unsichtbar ist.
-    revealTimer = window.setTimeout(function () {
-      if (!aboutPanel.classList.contains('is-open')) return;
+    panel.revealTimer = window.setTimeout(function () {
+      if (!panel.classList.contains('is-open')) return;
 
       scroller.scrollTop = 0;
 
@@ -170,11 +174,11 @@
         return;
       }
 
-      observer = new IntersectionObserver(function (entries) {
+      panel.observer = new IntersectionObserver(function (entries) {
         entries.forEach(function (entry) {
           if (!entry.isIntersecting) return;
           entry.target.classList.add('is-revealed');
-          observer.unobserve(entry.target);
+          panel.observer.unobserve(entry.target);
         });
       }, {
         root: scroller,
@@ -184,25 +188,45 @@
       });
 
       stories.forEach(function (story) {
-        observer.observe(story);
+        panel.observer.observe(story);
       });
     }, FIRST_REVEAL);
   }
 
-  function resetAbout() {
-    window.clearTimeout(revealTimer);
-    if (observer) {
-      observer.disconnect();
-      observer = null;
+  function resetAbout(panel) {
+    var scroller = panel.querySelector('[data-about-scroller]');
+    var stories = scroller
+      ? Array.prototype.slice.call(scroller.querySelectorAll('[data-story]'))
+      : [];
+    window.clearTimeout(panel.revealTimer);
+    if (panel.observer) {
+      panel.observer.disconnect();
+      panel.observer = null;
     }
+    panel.revealTimer = null;
     stories.forEach(function (story) {
       story.classList.remove('is-revealed');
     });
   }
 
+  function initializeAboutState(panel) {
+    panel.observer = null;
+    panel.revealTimer = null;
+  }
+
+  [aboutPanel, racingPanel].forEach(function (panel) {
+    if (panel) initializeAboutState(panel);
+  });
+
   // Fehlende Medien nicht als kaputtes Bild zeigen — die Fläche bleibt dann
   // als neutraler Platzhalter stehen.
-  stories.forEach(function (story) {
+  [aboutPanel, racingPanel].forEach(function (panel) {
+    if (!panel) return;
+    var scroller = panel.querySelector('[data-about-scroller]');
+    var stories = scroller
+      ? Array.prototype.slice.call(scroller.querySelectorAll('[data-story]'))
+      : [];
+    stories.forEach(function (story) {
     var media = story.querySelector('img, video');
     if (!media) return;
 
@@ -215,5 +239,6 @@
     if (media.tagName === 'IMG' && media.complete && media.naturalWidth === 0) {
       hide();
     }
+    });
   });
 })();

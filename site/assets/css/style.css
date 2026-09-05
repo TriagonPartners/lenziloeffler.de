@@ -1,5 +1,5 @@
 /* ==========================================================================
-   manuel-beck.com — Base Stylesheet
+  lenziloeffler.de — Base Stylesheet
    Plain CSS, kein Framework. Aufbau:
    1. Font
    2. Design-Tokens
@@ -16,11 +16,10 @@
 /* 1. Font ----------------------------------------------------------------- */
 
 @font-face {
-  font-family: "Plus Jakarta Sans";
+  font-family: "Saira";
   /* Variable Font: eine Datei deckt 200–800 ab.
      Pfad ist relativ zu dieser CSS-Datei (assets/css/). */
-  src: url("../fonts/PlusJakartaSans/PlusJakartaSans-Variable.woff2") format("woff2-variations"),
-       url("../fonts/PlusJakartaSans/PlusJakartaSans-Variable.woff2") format("woff2");
+  src: url("../fonts/Saira/Saira-VariableFont_wdth,wght.ttf") format("truetype");
   font-weight: 200 800;
   font-style: normal;
   font-display: swap;
@@ -31,10 +30,10 @@
 :root {
   /* Farben — ausschließlich diese vier Werte, keine abgeschwächten Varianten
      für Text oder Linien. */
-  --color-yellow: #f5d000;
-  --color-ink: #0a0a0a;
-  --color-dark: #242424;
-  --color-light: #f5f5f5;
+  --color-yellow: #FC4615;
+  --color-ink: #0A1F33;
+  --color-dark: #0A1F33;
+  --color-light: #E2E2E2;
 
   /* Akzentfarben — ausschließlich für die Symbolfläche des jeweiligen Icons
      im Hover-Zustand. Sonst nirgends verwendet.
@@ -45,27 +44,59 @@
      tritt sie nie als Farbblock neben das Zweifarbschema.
      Das Grün ist bewusst KEIN LinkedIn-Blau (#0a66c2), bitte nicht
      „korrigieren". */
-  --color-accent-linkedin: #007a3d; /* Grün  */
-  --color-accent-about: #f5f5f5;    /* Weiß  */
-  --color-accent-contact: #b90400;  /* Rot   */
+  --color-accent-linkedin: #0A1F33;
+  --color-accent-about: #0A1F33;
+  --color-accent-contact: #0A1F33;
 
   /* Typo */
-  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: "Saira", system-ui, -apple-system, "Segoe UI", sans-serif;
 
   /* Hero-Skala: 96px auf Desktop, skaliert proportional nach unten.
      Alle vertikalen Abstände im Hero leiten sich hiervon ab, damit das
      kalibrierte Verhältnis (30px / 60px bei 96px Hero) erhalten bleibt. */
   --hero-size: clamp(2.75rem, 11.5vw, 6rem);          /* max 96px */
   --tagline-size: clamp(1.0625rem, 3.35vw, 1.75rem);  /* max 28px */
+  --tagline-line: calc(var(--tagline-size) * 1.2);    /* line-height der Tagline */
 
+  /* DIE Abstandseinheit der Seite. Gemessen wird von Elementkante zu
+     Elementkante — 30px bei 96px Hero. Alles, was unten mit „1u" oder „2u"
+     bezeichnet ist, leitet sich hiervon ab und skaliert mit dem Hero mit:
+
+       Hero-Zeile     → Tagline                 1u
+       Tagline        → Icon-Reihe (Oberkante)  1u
+       „Follow Lenzi" → Social-Icons            1u
+       Social-Icons   → Fußnote (Oberkante)     2u                         */
   --space-hero-tagline: calc(var(--hero-size) * 0.3125); /* 96px → 30px */
-  --space-tagline-icons: calc(var(--hero-size) * 0.625); /* 96px → 60px */
 
   /* Icon-Buttons — 33 % größer als zuvor (3.5rem → 4.65rem) */
   --icon-button-size: clamp(4rem, 14.6vw, 4.65rem);
   --icon-glyph-size: 42%;
+  /* Dieselbe Glyphengröße als Länge statt als Prozentwert — die Social-Icons
+     stehen ohne Button, brauchen das Maß aber auf den Punkt genau gleich.
+     Die 42 % beziehen sich im Button auf dessen Inhaltsfläche, also auf die
+     Buttongröße abzüglich der beiden Randstärken. */
+  --icon-glyph-length: calc((var(--icon-button-size) - 2 * var(--icon-border)) * 0.42);
   --icon-gap: clamp(1.25rem, 4.5vw, 1.75rem);
   --icon-border: 2px;
+
+  /* --- Wortmarke zwischen Icon-Reihe und „Follow Lenzi" ------------------
+     Ober- und Unterkante des Logos liegen auf Ober- und Unterkante des „N"
+     im Hero-Claim. Das „N" steht auf der Grundlinie (keine Unterlänge), seine
+     sichtbare Höhe ist also die Versalhöhe: in Saira gemessene 0,688 em,
+     über alle Schriftgrößen und Schriftstärken konstant.
+
+       Höhe  = 96px × 0,688            =  66,05px
+       Breite = 66,05px × 308,7 / 37,55 = 542,99px
+
+     Die Wortmarke füllt ihre Zeichenfläche senkrecht vollständig aus, ihre
+     sichtbare Kante ist damit die Elementkante.
+
+     max-width greift erst auf schmalen Schirmen, wo das Logo sonst über den
+     Seitenrand liefe; dort wird es proportional kleiner. */
+  --logo-ratio: 308.7 / 37.55;   /* Seitenverhältnis der Logodatei */
+  --cap-height: 0.688;           /* Versalhöhe von Saira, in em */
+  --logo-height: calc(var(--hero-size) * var(--cap-height));
+  --logo-width: calc(var(--logo-height) * 308.7 / 37.55);
 
   /* --- Bewegung: EIN Tempo und EINE Kurve für die ganze Seite ------------
      Dauer 1s stammt aus dem Aerial-Template (animation: header 1s …).
@@ -106,7 +137,20 @@
   /* Größe nach der markierten Fläche: rund 62 % der Fensterbreite und 78 %
      der Höhe, mittig — also ca. 19vw Rand seitlich und 11vh oben/unten. */
   --about-width: min(62vw, 1060px);
-  --about-height: min(78vh, 800px);
+
+  /* Höhe: das Overlay soll die Social-Icons vollständig verdecken, die
+     Fußnote aber sichtbar lassen. Es ist mittig im Viewport, oben und unten
+     bleibt also automatisch derselbe Rand — dieser Rand ist so bemessen,
+     dass die Unterkante des Overlays genau mittig zwischen der Unterkante
+     der Social-Icons und der Oberkante der Fußnote liegt:
+
+       Rand = Fußnoten-Abstand + Fußnotenzeile + 1u
+       1440×900 → 14,4 + 19,6 + 30 = 64px
+
+     Damit deckt es die Icons um 1u ab und lässt der Fußnote 1u Luft. */
+  --footer-line: calc(14px * 1.4);   /* Schriftgröße × Zeilenhöhe der Fußnote */
+  --about-inset: calc(var(--footer-inset) + var(--footer-line) + var(--space-hero-tagline));
+  --about-height: calc(100vh - 2 * var(--about-inset));
 
   /* Innenrand. Links, rechts und oben doppelt so groß wie zuvor — der graue
      Rahmen um das Bild ist damit verdoppelt. Unten bleibt es beim alten Maß,
@@ -125,6 +169,14 @@
   --split-media-max-h: calc(var(--about-height) - var(--about-peek) - 2 * var(--about-frame));
 
   --panel-radius: 18px;
+}
+
+/* svh kennt nicht jeder ältere Android-Browser; die vh-Zeile oben bleibt als
+   Rückfall stehen. */
+@supports (height: 100svh) {
+  :root {
+    --about-height: calc(100svh - 2 * var(--about-inset));
+  }
 }
 
 /* 3. Reset / Basis -------------------------------------------------------- */
@@ -216,7 +268,12 @@ body.is-preload *::after {
     opacity: 0;
   }
   100% {
-    transform: translate3d(0, 0, 0);
+    /* none statt translate3d(0,0,0): mit fill-mode forwards bliebe sonst eine
+       Transformation stehen, das Element behielte seine eigene Compositing-
+       Ebene und würde auf ganze Gerätepixel gerundet gezeichnet. Die
+       kalibrierten Abstände (1u / 2u) verschöben sich dadurch um bis zu einen
+       halben Pixel. */
+    transform: none;
     opacity: 1;
   }
 }
@@ -251,11 +308,26 @@ body.is-preload *::after {
   animation-delay: calc(var(--intro-base) + 3 * var(--intro-stagger));
 }
 
+/* Schritt 4 — Wortmarke unter der Icon-Reihe */
+.js .hero__logo {
+  opacity: 0;
+  animation: intro-rise var(--fade-intro) var(--ease-soft) forwards;
+  animation-delay: calc(var(--intro-base) + 4 * var(--intro-stagger));
+}
+
+/* Schritt 5 — Social-Block als Ganzes (Zeile „Follow Lenzi" und die drei
+   Profile bewegen sich gemeinsam, ihr Abstand bleibt dabei konstant). */
+.js .social {
+  opacity: 0;
+  animation: intro-rise var(--fade-intro) var(--ease-soft) forwards;
+  animation-delay: calc(var(--intro-base) + 5 * var(--intro-stagger));
+}
+
 /* Footer zuletzt */
 .js .page--home .footer {
   opacity: 0;
   animation: intro-rise var(--fade-intro) var(--ease-soft) forwards;
-  animation-delay: calc(var(--intro-base) + 4 * var(--intro-stagger));
+  animation-delay: calc(var(--intro-base) + 6 * var(--intro-stagger));
 }
 
 /* 5. Layout --------------------------------------------------------------- */
@@ -268,14 +340,23 @@ body.is-preload *::after {
   align-items: center;
   min-height: 100vh;
   min-height: 100svh;
-  padding: var(--page-pad-y) var(--page-pad-x) var(--footer-inset);
+  /* env(safe-area-inset-*) greift nur mit viewport-fit=cover im <meta>.
+     Auf dem iPhone hält es Fußnote und Hero aus Notch, Home-Indicator und
+     den abgerundeten Ecken heraus, auf Android aus der Gestenleiste.
+     max() statt Addition: der Designabstand bleibt die Untergrenze. */
+  padding-block: max(var(--page-pad-y), env(safe-area-inset-top))
+                 max(var(--footer-inset), env(safe-area-inset-bottom));
+  padding-inline: max(var(--page-pad-x), env(safe-area-inset-left))
+                  max(var(--page-pad-x), env(safe-area-inset-right));
 }
 
 .page--home {
-  background-color: var(--color-yellow);
-  color: var(--color-ink);
+  background-color: var(--color-dark);
+  color: var(--color-yellow);
 }
 
+/* Rechtsseiten: CDF-Dunkelblau als Grund, CDF-Hellgrau für Text, Trennlinie
+   und Zurück-Pfeil (der Pfeil ist eine Maske und nimmt currentColor an). */
 .page--dark {
   background-color: var(--color-dark);
   color: var(--color-light);
@@ -296,7 +377,7 @@ body.is-preload *::after {
 .hero__title {
   margin: 0;
   font-size: var(--hero-size);
-  font-weight: 700;
+  font-weight: 400;
   line-height: 1;
   letter-spacing: -0.03em;
 }
@@ -304,9 +385,47 @@ body.is-preload *::after {
 .hero__tagline {
   margin: var(--space-hero-tagline) 0 0;
   font-size: var(--tagline-size);
-  font-weight: 700;
+  font-weight: 400;
   line-height: 1.2;
   letter-spacing: -0.01em;
+}
+
+/* Der freie Raum im Hero wird auf zwei gleich große Flächen aufgeteilt:
+   ::before über der Hero-Zeile, .hero__logo-slot unter der Icon-Reihe. Beide
+   wachsen mit demselben Faktor, die Hero-Zeile steht dadurch genauso hoch
+   wie bei justify-content: center.
+
+   Die untere Fläche reicht exakt von der Unterkante der Icon-Reihe bis zur
+   Oberkante von „Follow Lenzi" (der Hero endet dort, wo der Social-Block
+   beginnt). Das mittig darin liegende Logo sitzt damit genau in der Mitte
+   zwischen beiden. */
+.hero::before {
+  content: "";
+  flex: 1 1 0;
+}
+
+.hero__logo-slot {
+  /* Bezugsrahmen für das Contact-Panel, siehe dort. */
+  position: relative;
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 0;
+}
+
+/* Freigestellte Wortmarke, so hoch wie der Hero-Claim.
+   Die dunkelblauen Flächen der Wortmarke laufen in der Datei im CDF-Hellgrau
+   — auf dunkelblauem Grund wären sie sonst unsichtbar. */
+.hero__logo {
+  width: var(--logo-width);
+  max-width: 100%;
+  /* Notbremse für sehr flache Fenster: lieber ein kleineres Logo als eines,
+     das über die Icon-Reihe und „Follow Lenzi" läuft. */
+  max-height: 100%;
+  aspect-ratio: var(--logo-ratio);
+  background: url("/assets/images/lenzi-logo.svg") center / contain no-repeat;
 }
 
 /* Footer — © links unten, Links rechts unten. Auseinandergezogen, damit er
@@ -319,8 +438,20 @@ body.is-preload *::after {
   width: 100%;
   margin-top: clamp(1.5rem, 4vh, 2.5rem);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.4;
+}
+
+/* Auf der Startseite trägt der Social-Block den gesamten Abstand nach oben
+   (2u bis zur Oberkante dieser Zeile), der Footer selbst bringt keinen
+   eigenen mit. */
+.page--home .footer {
+  margin-top: 0;
+}
+
+.footer__copy,
+.footer__links {
+  flex: 0 0 auto;
 }
 
 .footer__links {
@@ -344,6 +475,64 @@ body.is-preload *::after {
   margin: 0 0.75em;
 }
 
+/* Social — „Follow Lenzi" plus die drei Profil-Icons, mittig zentriert über
+   der Fußnote. Abstände: 1u zwischen Zeile und Icons, 2u von der Unterkante
+   der Icons zur Oberkante der Fußnotenzeile. */
+.social {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-bottom: calc(2 * var(--space-hero-tagline));
+  text-align: center;
+}
+
+/* Gleiche Größe, Laufweite und Stärke wie „Formula 3 Driver". */
+.social__label {
+  margin: 0 0 var(--space-hero-tagline);
+  font-size: var(--tagline-size);
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.social__icons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--icon-gap);
+}
+
+/* Ohne Umkreisung, aber mit exakt derselben Glyphenfläche wie in den
+   Buttons (--icon-glyph-length = 42 % der Buttongröße). */
+.social__link {
+  display: grid;
+  place-items: center;
+  color: inherit;
+  text-decoration: none;
+  transition: transform 180ms var(--ease-soft);
+}
+
+.social__link .icon {
+  width: var(--icon-glyph-length);
+  height: var(--icon-glyph-length);
+}
+
+.social__link:focus-visible {
+  outline: 2px solid var(--color-yellow);
+  outline-offset: 4px;
+  border-radius: 2px;
+  transform: translateY(-2px);
+}
+
+/* Wie bei den Buttons: nur mit echtem Zeiger, sonst bliebe der Zustand auf
+   Touch-Geräten hängen. Ohne Fläche bleibt als Rückmeldung die Bewegung. */
+@media (hover: hover) and (pointer: fine) {
+  .social__link:hover {
+    transform: translateY(-2px);
+  }
+}
+
 /* 6. Icon-Buttons --------------------------------------------------------- */
 
 /* Positionierungs-Anker für das Contact-Panel, das sich an der Mittelachse
@@ -354,7 +543,9 @@ body.is-preload *::after {
   align-items: center;
   justify-content: center;
   gap: var(--icon-gap);
-  margin-top: var(--space-tagline-icons);
+  /* 1u — genau so weit unter der Tagline wie die Tagline unter der
+     Hero-Zeile. Gemessen bis zur Oberkante der Umkreisung. */
+  margin-top: var(--space-hero-tagline);
 }
 
 /* Wrapper hält Button + zugehöriges Panel zusammen (Positionierungs-Anker,
@@ -373,16 +564,16 @@ body.is-preload *::after {
    Im Hover kehrt sich das um: schwarze Fläche, und die Symbolfläche nimmt
    die Akzentfarbe des jeweiligen Icons an (siehe .action--*). */
 .action {
-  --action-hover-glyph: var(--color-yellow); /* Rückfallwert */
+  --action-hover-glyph: var(--color-ink);
   display: grid;
   place-items: center;
   width: var(--icon-button-size);
   height: var(--icon-button-size);
   padding: 0;
-  border: var(--icon-border) solid var(--color-ink);
+  border: var(--icon-border) solid var(--color-yellow);
   border-radius: 50%;
-  background-color: var(--color-yellow);
-  color: var(--color-ink);
+  background-color: var(--color-dark);
+  color: var(--color-yellow);
   cursor: pointer;
   text-decoration: none;
   transition: transform 180ms var(--ease-soft),
@@ -393,8 +584,8 @@ body.is-preload *::after {
 .action:focus-visible,
 .action[aria-expanded="true"] {
   transform: translateY(-2px);
-  background-color: var(--color-ink);
-  color: var(--action-hover-glyph);
+  background-color: var(--color-yellow);
+  color: var(--color-ink);
 }
 
 /* Nur mit echtem Zeiger. Auf Touch-Geräten bliebe :hover nach dem Antippen
@@ -402,26 +593,14 @@ body.is-preload *::after {
 @media (hover: hover) and (pointer: fine) {
   .action:hover {
     transform: translateY(-2px);
-    background-color: var(--color-ink);
-    color: var(--action-hover-glyph);
+    background-color: var(--color-yellow);
+    color: var(--color-ink);
   }
 }
 
 /* Akzentfarbe je Icon — greift über currentColor auf die Maskenfläche. */
-.action--linkedin {
-  --action-hover-glyph: var(--color-accent-linkedin);
-}
-
-.action--about {
-  --action-hover-glyph: var(--color-accent-about);
-}
-
-.action--contact {
-  --action-hover-glyph: var(--color-accent-contact);
-}
-
 .action:focus-visible {
-  outline: 2px solid var(--color-ink);
+  outline: 2px solid var(--color-yellow);
   outline-offset: 3px;
 }
 
@@ -447,6 +626,26 @@ body.is-preload *::after {
 .icon--user {
   -webkit-mask-image: url("/assets/icons/user.svg");
   mask-image: url("/assets/icons/user.svg");
+}
+
+.icon--racing {
+  -webkit-mask-image: url("/assets/icons/flag-checkered-solid-full.svg");
+  mask-image: url("/assets/icons/flag-checkered-solid-full.svg");
+}
+
+.icon--youtube {
+  -webkit-mask-image: url("/assets/icons/youtube-brands-solid-full.svg");
+  mask-image: url("/assets/icons/youtube-brands-solid-full.svg");
+}
+
+.icon--instagram {
+  -webkit-mask-image: url("/assets/icons/instagram-brands-solid-full.svg");
+  mask-image: url("/assets/icons/instagram-brands-solid-full.svg");
+}
+
+.icon--facebook {
+  -webkit-mask-image: url("/assets/icons/facebook-brands-solid-full.svg");
+  mask-image: url("/assets/icons/facebook-brands-solid-full.svg");
 }
 
 .icon--envelope {
@@ -498,6 +697,26 @@ body.is-preload *::after {
   margin: 0;
 }
 
+/* Contact: drei beschriftete Blöcke statt einer Aufzählung. Das Label steht
+   in derselben Farbe, nur etwas kleiner und gesperrt — kein zweiter Grauwert,
+   das Zweifarbschema bleibt. */
+/* Drei beschriftete Blöcke, kein Fließtext: das Panel wird überflogen, nicht
+   gelesen. Das Label sagt, wofür die Adresse zuständig ist. */
+.contact__line {
+  line-height: 1.5;
+}
+
+.contact__line + .contact__line {
+  margin-top: 0.6rem;
+}
+
+.contact__label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
 /* Der Zeiger bleibt über der Panelfläche der normale Pfeil. Ohne diese
    Regel schlägt er über jedem Textblock in den Text-Cursor um — bei einem
    Panel, das beim Hovern aufgeht, wirkt das unruhig, und es signalisiert
@@ -512,25 +731,32 @@ body.is-preload *::after {
   cursor: pointer;
 }
 
-/* Contact-Panel sitzt mittig über der gesamten Icon-Reihe, nicht unter dem
-   Briefumschlag. Der Abstand von der Panel-Oberkante zur Tagline ist genau
-   so groß wie der zwischen Tagline und Hero-Zeile:
+/* Contact-Panel — liegt über Tagline und Icon-Reihe, aber nie über der
+   Wortmarke. Es steht deshalb im Logo-Slot und spannt sich zwischen zwei
+   Kanten auf:
 
-     .actions beginnt --space-tagline-icons unter der Tagline (= Hero × 0.625)
-     das Panel soll  --space-hero-tagline  darunter beginnen (= Hero × 0.3125)
-     Differenz = Hero × 0.3125 = --space-hero-tagline, also genau so weit nach
-     oben verschoben.
+     top     Unterkante der Hero-Zeile. Vom oberen Rand des Slots aus sind
+             das die Icon-Reihe, 1u, die Taglinezeile und noch einmal 1u —
+             alles bekannte Längen, deshalb als negativer Wert exakt
+             berechenbar.
+     bottom  Oberkante der Wortmarke. Sie liegt mittig im Slot, ihre
+             Oberkante also eine halbe Logohöhe über der Slotmitte.
 
-   Damit sich das Panel auf .actions bezieht statt auf seinen eigenen
-   Wrapper, ist dieser auf position: static gesetzt. */
-.action-wrap--contact {
-  position: static;
-}
-
+   height bleibt auto, die beiden auto-Ränder teilen den Rest gleichmäßig
+   auf: der Abstand nach oben zur Hero-Zeile ist damit exakt so groß wie der
+   nach unten zur Wortmarke. */
 .panel--contact {
-  top: calc(-1 * var(--space-hero-tagline));
+  top: calc(-1 * (var(--icon-button-size)
+                  + 2 * var(--space-hero-tagline)
+                  + var(--tagline-line)));
+  bottom: calc(50% + var(--logo-height) / 2);
   left: 50%;
   width: min(23rem, calc(100vw - 2.5rem));
+  /* Ohne fit-content wäre height: auto bei gesetztem top UND bottom keine
+     Inhaltshöhe, sondern die volle Bandhöhe — die auto-Ränder hätten dann
+     nichts mehr zu verteilen und das Panel klebte an beiden Kanten. */
+  height: fit-content;
+  margin-block: auto;
   font-size: 15px;
   /* Nur Opazität animieren — jede Bewegung würde die Ausrichtung stören. */
   transform: translateX(-50%);
@@ -538,6 +764,25 @@ body.is-preload *::after {
 
 .panel--contact.is-open {
   transform: translateX(-50%);
+}
+
+/* Auf kurzen Schirmen wird der Streifen zwischen Hero-Zeile und Wortmarke
+   knapp. Statt das Panel dort herauszulösen und irgendwo hin zu zentrieren,
+   wird es kompakter — die Verankerung und damit die exakt gleichen Abstände
+   nach oben und unten bleiben so auf jedem Gerät erhalten. */
+@media (max-height: 700px) {
+  .panel--contact {
+    padding: 1rem 1.15rem;
+    font-size: 13px;
+  }
+
+  .contact__line + .contact__line {
+    margin-top: 0.4rem;
+  }
+
+  .contact__label {
+    font-size: 10px;
+  }
 }
 
 /* Über .panel--contact geschrieben, weil .panel p oben margin: 0 setzt und
@@ -691,7 +936,7 @@ body.is-preload *::after {
 .story__title {
   margin: 0 0 0.4rem;
   font-size: clamp(1.0625rem, 1.6vw, 1.25rem);
-  font-weight: 700;
+  font-weight: 400;
   line-height: 1.2;
   letter-spacing: -0.01em;
 }
@@ -800,7 +1045,9 @@ body.is-preload *::after {
 
 .story--split .story__frame {
   flex-direction: row;
-  align-items: stretch;
+  /* Mittig statt oben: die Texte sind kurz, oben ausgerichtet bliebe unter
+     Bild und Text eine große leere Fläche im Kapitel stehen. */
+  align-items: center;
   justify-content: flex-start;
   gap: clamp(1.25rem, 2.5vw, 2.25rem);
 }
@@ -810,6 +1057,7 @@ body.is-preload *::after {
    Lesbarkeit und als Angriffspunkt für Feinheiten. */
 .story--media-first .story__frame {
   flex-direction: column;
+  justify-content: center;
 }
 
 /* Kapitel 4: Bild links. Das Medium ist im Markup das zweite Element,
@@ -844,7 +1092,6 @@ body.is-preload *::after {
 
 .story--split .story__text {
   flex: 1 1 auto;
-  align-self: stretch;
 }
 
 /* --- Reveal ------------------------------------------------------------ */
@@ -936,7 +1183,7 @@ body.is-preload *::after {
   gap: 0.6rem;
   margin-bottom: 0.75rem;
   font-size: 15px;
-  font-weight: 500;
+  font-weight: 400;
   text-decoration: none;
   color: inherit;
 }
@@ -993,6 +1240,8 @@ body.is-preload *::after {
 .legal__title {
   margin: 0 0 0.55rem;
   font-size: clamp(1.375rem, 2.6vw, 1.9rem);
+  /* Die einzigen fetten Stellen der Seite: die beiden Seitentitel und die
+     Abschnittsüberschriften auf den Rechtsseiten. Alles andere ist 400. */
   font-weight: 700;
   line-height: 1.15;
   letter-spacing: -0.02em;
@@ -1062,7 +1311,6 @@ body.is-preload *::after {
 @media (max-width: 1024px) {
   :root {
     --about-width: min(90vw, 900px);
-    --about-height: min(82vh, 900px);
   }
 }
 
@@ -1179,6 +1427,62 @@ body.is-preload *::after {
   }
 }
 
+/* --- Rechtsseiten nebeneinander: zeilenweise Ausrichtung ----------------
+   Jede Spalte trug vorher ihren eigenen Textfluss: eine deutsche Einleitung
+   über drei Zeilen und eine englische über vier ließen alle folgenden
+   Überschriften auseinanderlaufen.
+
+   Beide Fassungen sind jetzt selbst Raster und übernehmen per
+   grid-template-rows: subgrid die Zeilen des Elternrasters. Damit teilen
+   sich das n-te Kind links und das n-te Kind rechts dieselbe Zeile — die
+   Zeile ist so hoch wie der längere der beiden Blöcke, und jede Überschrift
+   startet links wie rechts exakt auf derselben Höhe. Beide Fassungen haben
+   dieselbe Blockfolge, deshalb passt die Zuordnung Kind für Kind.
+
+   Wichtig: die Fassungen bleiben dabei EIN Kasten (kein display: contents).
+   Nur so behalten sie ihre Shrink-to-fit-Breite und rücken als Block an die
+   Trennlinie — sonst stünde der kurze deutsche Impressumstext ganz links am
+   Seitenrand statt neben der Linie.
+
+   Unterhalb von 861px stapeln die Spalten (siehe unten); dort greift diese
+   Regel nicht. */
+@media (min-width: 861px) {
+  .legal-grid {
+    /* Mehr Zeilen als der längste Text braucht — überzählige Zeilen sind
+       leer und damit 0 hoch. Datenschutz nutzt 13, Impressum 3. */
+    grid-template-rows: repeat(14, auto);
+    align-items: start;
+  }
+
+  .legal {
+    display: grid;
+    grid-row: 1 / -1;
+    grid-template-rows: subgrid;
+    align-content: start;
+  }
+
+  .legal-grid > .legal:first-child {
+    grid-column: 1;
+  }
+
+  .legal-grid > .legal:last-child {
+    grid-column: 3;
+  }
+
+  .legal-grid__rule {
+    grid-column: 2;
+    grid-row: 1 / -1;
+    align-self: stretch;
+  }
+
+  /* Als eigene Rasterzelle kollabiert der obere Rand der Überschrift nicht
+     mehr mit dem unteren des Absatzes davor. 0.5rem (Absatz) + 0.2rem ergibt
+     wieder die 0.7rem, die vorher durch das Kollabieren entstanden. */
+  .legal__heading {
+    margin-top: 0.2rem;
+  }
+}
+
 /* --- Rechtsseiten: Spalten stapeln ------------------------------------- */
 @media (max-width: 860px) {
   .legal-grid {
@@ -1192,6 +1496,7 @@ body.is-preload *::after {
 
   .legal-grid > .legal:first-child,
   .legal-grid > .legal:last-child {
+    display: block;
     margin-left: 0;
     margin-right: 0;
   }
@@ -1211,16 +1516,9 @@ body.is-preload *::after {
   :root {
     /* Overlay füllt die Fläche, der zweizeilige Footer bleibt darunter frei. */
     --about-width: calc(100vw - 1.5rem);
-    /* vh als Rückfall: kennt ein Browser svh nicht, wäre der Wert erst beim
-       Einsetzen ungültig — die Overlay-Höhe fiele komplett aus (betrifft
-       ältere Android-Browser, siehe Abschnitt 820px). */
-    --about-height: calc(100vh - 7.5rem);
-  }
-
-  @supports (height: 100svh) {
-    :root {
-      --about-height: calc(100svh - 7.5rem);
-    }
+    /* Der Footer steht hier zweizeilig — die Fußnotenhöhe für die
+       Overlay-Berechnung wächst entsprechend mit. */
+    --footer-line: calc(14px * 1.4 * 2 + 0.35rem);
   }
 
   /* Contact-Panel bleibt an der Icon-Reihe verankert, genau wie am Desktop.
@@ -1235,6 +1533,7 @@ body.is-preload *::after {
     align-items: center;
     gap: 0.35rem;
   }
+
 }
 
 /* --- Touch: größere Ziele, kein Hover-Zoom ----------------------------- */
@@ -1243,6 +1542,24 @@ body.is-preload *::after {
     width: 2.75rem;
     height: 2.75rem;
     font-size: 1.15rem;
+  }
+
+  /* Die Social-Icons sind knapp 30px groß — als Tippziel zu klein. Das
+     Padding vergrößert nur die Trefferfläche, das Icon bleibt gleich groß;
+     der negative Rand hält den gemessenen Abstand zur Fußnote exakt. */
+  .social__icons {
+    margin: -0.5rem 0;
+  }
+
+  .social__link {
+    padding: 0.5rem 0.55rem;
+    margin: 0 -0.55rem;
+  }
+
+  /* Fußnotenlinks bekommen dieselbe Behandlung. */
+  .footer a {
+    padding: 0.4rem 0;
+    margin: -0.4rem 0;
   }
 
   .about {
@@ -1255,36 +1572,16 @@ body.is-preload *::after {
    deshalb rückt es in die Bildschirmmitte. */
 @media (max-height: 560px) {
   :root {
-    --about-height: calc(100vh - 3rem);
     --about-peek: calc(var(--about-frame) + 1rem);
   }
 
-  @supports (height: 100svh) {
-    :root {
-      --about-height: calc(100svh - 3rem);
-    }
-  }
-
-  .panel--contact,
-  .panel--contact.is-open {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    width: min(23rem, calc(100vw - 2.5rem));
-    max-width: none;
-    transform: translate(-50%, -50%);
-  }
-
-  .hero__title {
-    font-size: clamp(2rem, 8vh, 3.5rem);
-  }
-
-  .actions {
-    margin-top: clamp(1rem, 4vh, 2rem);
-  }
-
-  .hero__tagline {
-    margin-top: clamp(0.5rem, 2vh, 1rem);
+  /* Zwei Stellschrauben statt vier: die Hero-Größe und die Abstandseinheit.
+     Über --hero-size zieht die Wortmarke mit (ihre Höhe IST die Höhe des
+     Claims), über die Einheit bleiben Tagline, Icon-Reihe, „Follow Lenzi"
+     und die Fußnote im Verhältnis 1u : 1u : 1u : 2u zueinander. */
+  :root {
+    --hero-size: clamp(2rem, 8vh, 3.5rem);
+    --space-hero-tagline: clamp(0.625rem, 2.2vh, 1.125rem);
   }
 }
 

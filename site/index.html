@@ -2,21 +2,26 @@
 <html lang="de" class="no-js">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Manuel Beck. | Clarity. Direction. Progress.</title>
-  <meta name="description" content="Manuel Beck — Clarity. Direction. Progress.">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0A1F33">
+  <meta name="color-scheme" content="dark">
+  <title>Nicolas Lenzi Loeffler. | Formula 3 Driver.</title>
+  <meta name="description" content="Nicolas Lenzi Loeffler. | Formula 3 Driver.">
 
   <!-- Setzt html.js, bevor gerendert wird: nur dann laufen die Intro-Fades.
        Ohne JavaScript ist die Seite sofort vollständig sichtbar. -->
   <script>document.documentElement.className = 'js';</script>
 
-  <link rel="icon" type="image/x-icon" href="/assets/favicon/favicon.ico">
+  <link rel="icon" type="image/x-icon" href="/assets/favicon/favicon.ico" sizes="16x16 32x32 48x48">
   <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon/favicon-16x16.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/favicon/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
 
-  <link rel="preload" as="font" type="font/woff2"
-        href="/assets/fonts/PlusJakartaSans/PlusJakartaSans-Variable.woff2" crossorigin>
+  <!-- type muss zum Format passen, sonst verwirft der Browser den Preload
+       und Saira lädt erst mit dem Stylesheet nach. -->
+  <link rel="preload" as="font" type="font/ttf"
+        href="/assets/fonts/Saira/Saira-VariableFont_wdth,wght.ttf" crossorigin>
   <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <!-- is-preload friert die Intro-Animationen ein, bis window.onload feuert
@@ -24,23 +29,12 @@
 <body class="page page--home is-preload">
 
   <main class="hero">
-    <h1 class="hero__title">Manuel Beck.</h1>
-    <p class="hero__tagline">Clarity. Direction. Progress.</p>
+    <h1 class="hero__title">Nicolas Lenzi Loeffler.</h1>
+    <p class="hero__tagline">Formula 3 Driver.</p>
 
     <nav class="actions" aria-label="Profil und Kontakt">
 
-      <!-- 1. LinkedIn — externer Link, neuer Tab -->
-      <div class="action-wrap">
-        <span class="action-shell">
-          <a class="action action--linkedin" href="https://www.linkedin.com/in/manuelbeck"
-             target="_blank" rel="noopener noreferrer">
-            <span class="icon icon--linkedin" aria-hidden="true"></span>
-            <span class="sr-only">LinkedIn-Profil (öffnet in neuem Tab)</span>
-          </a>
-        </span>
-      </div>
-
-      <!-- 2. About Me — Vollflächen-Overlay, ein Kapitel je Bildschirmfläche -->
+      <!-- 1. About Me — Vollflächen-Overlay, ein Kapitel je Bildschirmfläche -->
       <div class="action-wrap" data-panel-trigger>
         <span class="action-shell">
           <button class="action action--about" type="button" aria-expanded="false" aria-controls="panel-about">
@@ -54,34 +48,28 @@
 
           <div class="about" data-about-scroller>
 
-            <!-- Kapitel 1 — Querformat -->
+            <!-- Kapitel 1–4 -->
             <article class="story story--media-first story--caption-right" data-story>
               <div class="story__frame">
                 <figure class="story__figure">
                   <div class="story__media">
                     <picture>
-                      <!-- Auf schmalen Schirmen ein eigener 16:9-Ausschnitt: das
-                           panoramische Band würde dort horizontal beschnitten und
-                           die Fahnenlinie zerschneiden. -->
-                      <source media="(max-width: 820px)" srcset="/assets/images/about-me/chicago-mobile.avif" type="image/avif">
-                      <source media="(max-width: 820px)" srcset="/assets/images/about-me/chicago-mobile.jpg" type="image/jpeg">
-                      <source srcset="/assets/images/about-me/chicago.avif" type="image/avif">
-                      <img src="/assets/images/about-me/chicago.jpg" alt="DuSable Bridge and North Michigan Avenue in Chicago"
-                           width="1600" height="400" decoding="async">
+                      <source media="(max-width: 820px)" srcset="/assets/images/about-me/user-1-mobile.avif" type="image/avif">
+                      <source media="(max-width: 820px)" srcset="/assets/images/about-me/user-1-mobile.jpg" type="image/jpeg">
+                      <source srcset="/assets/images/about-me/user-1.avif" type="image/avif">
+                      <img src="/assets/images/about-me/user-1.jpg" alt="Formula 3 field on track at Imola"
+                           width="1600" height="900" decoding="async">
                     </picture>
                   </div>
-                  <figcaption class="story__caption">DuSable Bridge, N. Michigan Ave. · Chicago · September 17, 2010</figcaption>
+                  <figcaption class="story__caption">Autodromo Internazionale Enzo e Dino Ferrari · Imola · April 25, 2026</figcaption>
                 </figure>
                 <div class="story__text">
-                  <h2 class="story__title">From Kaufbeuren to Chicago</h2>
+                  <h2 class="story__title">Formula 3 at Sixteen</h2>
                   <p class="story__body">
-                    I grew up in Kaufbeuren, a small town south of Munich. As a competitive Taekwondo athlete, I competed nationally and internationally in regional squads, coming close to national-team level toward the end of high school. It gave me an early perspective on talent, performance — and the importance of the environment around an athlete.
+                    Nicolas &bdquo;Lenzi&ldquo; Loeffler, 16, races a Dallara F312 under number 91. In his first Formula 3 season he leads four championships at once.
                   </p>
                   <p class="story__body">
-                    The U.S. was always the dream. After graduating in 2010, I made it happen differently: a year in Chicago, volunteering full-time at a homeless shelter while living in one of the city’s most vibrant neighborhoods — and travelling the country along the way, from New York to California and Miami, with L.A., Santa Monica and Malibu among the places I had long wanted to experience.
-                  </p>
-                  <p class="story__body">
-                    Sports came with it: I committed to the Bears at the beginning of the 2006 season — initially drawn in by Devin Hester, with no idea they would make it to the Super Bowl. The Bulls had been on my radar since the Michael Jordan era, and my year in the U.S. happened to coincide with two moments I won’t forget: Derrick Rose’s MVP season, which I experienced at the United Center, and Dirk Nowitzki winning the championship.
+                    Ten class wins, two podiums in the outright field, fastest lap in half his races &mdash; from five of ten weekends, alongside school in Munich.
                   </p>
                 </div>
               </div>
@@ -90,24 +78,25 @@
             <article class="story story--caption-left" data-story>
               <div class="story__frame">
                 <div class="story__text">
-                  <h2 class="story__title">Munich — Learning &amp; Entering Technology</h2>
+                  <h2 class="story__title">From a Kart at Six to a Dallara at Eleven</h2>
                   <p class="story__body">
-                    I studied American Studies and Philosophy at LMU Munich while gaining my first professional experience at Munich City Council. My connection to Chicago continued as I helped prepare and mentor future volunteer cohorts for a structured educational service abroad, supporting them before departure and after their return.
+                    Karting at six. First Dallara at eleven. First timed formula race in 2023, second in the Formula Predator final in 2024, first full formula season in 2025.
                   </p>
                   <p class="story__body">
-                    Research for my B.A. thesis on U.S. foreign policy and diplomatic history later took me to New York and Washington, D.C., while my work at Munich City Council gave me an early view into public services, research and policy consulting. Today, I am finishing my Master’s alongside building my own businesses and ventures, exploring technology, culture, sports and high performance — and their connections to business and everyday life. With an MBA already in planning, academic learning will continue to complement my professional path. Connecting theory with practical application has always been important to me.
+                    Every step added around fifty horsepower. Formula 3 was the next one &mdash; not a jump.
                   </p>
                 </div>
                 <figure class="story__figure">
                   <div class="story__media">
                     <picture>
-                      <source srcset="/assets/images/about-me/munich.avif" type="image/avif">
-                      <img src="/assets/images/about-me/munich.jpg" alt="Geschwister-Scholl-Platz at LMU Munich"
-                           width="1600" height="1200" decoding="async"
-                           style="object-position: center 55%">
+                      <source media="(max-width: 820px)" srcset="/assets/images/about-me/user-2-mobile.avif" type="image/avif">
+                      <source media="(max-width: 820px)" srcset="/assets/images/about-me/user-2-mobile.jpg" type="image/jpeg">
+                      <source srcset="/assets/images/about-me/user-2.avif" type="image/avif">
+                      <img src="/assets/images/about-me/user-2.jpg" alt="Pit straight at Autodromo Nazionale Monza"
+                           width="1600" height="900" decoding="async">
                     </picture>
                   </div>
-                  <figcaption class="story__caption">Geschwister-Scholl-Platz, LMU · Munich · May 2, 2016</figcaption>
+                  <figcaption class="story__caption">Autodromo Nazionale Monza · Monza · August 1, 2026</figcaption>
                 </figure>
               </div>
             </article>
@@ -115,30 +104,23 @@
             <article class="story story--split story--caption-right" data-story>
               <div class="story__frame">
                 <div class="story__text">
-                  <h2 class="story__title">Augsburg — Balance &amp; Building from Scratch</h2>
+                  <h2 class="story__title">The Car, the Team, the Craft</h2>
                   <p class="story__body">
-                    Augsburg had always been close to home, and so had FC Augsburg. When the club reached the Bundesliga, a season ticket followed. My career in the technology ecosystem had already started in Munich, where strong results and the trust that came with them opened up an internal opportunity in Augsburg. What started as an idea became reality surprisingly fast. I actively pursued the opportunity, moved to Augsburg and continued within an already well-running setup, while my client work increasingly expanded beyond Munich across Germany.
+                    Dallara F312 with Mercedes AMG power: 245 hp on 460 kilograms, sequential six-speed paddle shift, 260 km/h. The generation Verstappen raced at sixteen.
                   </p>
                   <p class="story__body">
-                    Augsburg became a good base for that next phase: close to my home region of Bavarian Swabia, with short distances, nature and a strong sense of history. Its Renaissance heritage and Mediterranean touches give the city its own character, while Munich remains close and frequent business travel kept the wider professional world within reach.
-                  </p>
-                  <p class="story__body">
-                    Professionally, I moved from business development in technology consulting to executive search in the software industry. In 2026, I brought those two sides together and started building my own businesses and ventures in tech &amp; leadership advisory, leveraging AI for automation, productivity and performance enhancement while keeping human judgment central to people and leadership decisions.
-                  </p>
-                  <p class="story__body">
-                    Leaving the structure of employment and building independently changed the operating context. It requires focus, resilience and responsibility, but also creates the freedom to decide what to build, how to work and where to invest energy. For me, that has made clarity, direction and progress more practical than conceptual.
+                    With Franz W&ouml;ss Racing since Monza, in the colours of the ADAC Junior Team S&uuml;dbayern.
                   </p>
                 </div>
                 <figure class="story__figure">
                   <div class="story__media">
                     <picture>
-                      <source srcset="/assets/images/about-me/augsburg.avif" type="image/avif">
-                      <img src="/assets/images/about-me/augsburg.jpg" alt="Hercules Fountain in Augsburg"
-                           width="750" height="1000" decoding="async"
-                           style="object-position: center 45%">
+                      <source srcset="/assets/images/about-me/user-3.avif" type="image/avif">
+                      <img src="/assets/images/about-me/user-3.jpg" alt="Nicolas Lenzi Loeffler in the cockpit before the start"
+                           width="904" height="1130" decoding="async">
                     </picture>
                   </div>
-                  <figcaption class="story__caption">Hercules Fountain · Augsburg · August 26, 2020</figcaption>
+                  <figcaption class="story__caption">Slovakia Ring · Orechová Potôň · August 23, 2026</figcaption>
                 </figure>
               </div>
             </article>
@@ -146,43 +128,144 @@
             <article class="story story--split story--media-left story--caption-left" data-story>
               <div class="story__frame">
                 <div class="story__text">
-                  <h2 class="story__title">Motorsport — Building Around Performance</h2>
+                  <h2 class="story__title">Where the Season Stands</h2>
                   <p class="story__body">
-                    Sport never really went away. I still play basketball and go for a run — and more recently discovered motorsport through supporting a young driver from Munich competing in a Formula 3 racing series.
+                    Leading the Austria Formel Cup (179 pts), the TopJet F2000 Italian Trophy (158), the Austrian Racing Car Championship (136) and the FIA Central European Zone D2F3.
                   </p>
                   <p class="story__body">
-                    It started with a chance conversation at a business reunion. Less than six weeks later, Monza was on the calendar.
-                  </p>
-                  <p class="story__body">
-                    The sporting potential was there, but the resources to compete were not. Bringing people and businesses together around that potential helped make the race weekend possible — and put me inside the team for the full experience: paddock and garages, evening track walks, and seeing first-hand how driver, engineers, technology, preparation and external conditions interact.
-                  </p>
-                  <p class="story__body">
-                    He went on to win at Monza — his third consecutive victory at Formula 1 circuits after the Red Bull Ring and Imola, taking him back to the top of the Austria Formula Cup standings.
-                  </p>
-                  <p class="story__body">
-                    That got me hooked. Not only on motorsport, but on what surrounds performance: the people, technology, partnerships and structures that allow talent to progress.
-                  </p>
-                  <p class="story__body">
-                    It also brought me back to my own experience as a young athlete. Today, I want to combine what I have learned across competitive sports, business and volunteering to support ambitious young athletes in building that wider performance ecosystem — and taking the next step when talent alone isn’t enough.
+                    Next up: F4 Spanish Championship, F4 German Championship, Eurocup-3 &mdash; the route towards FIA Super Licence points.
                   </p>
                 </div>
                 <figure class="story__figure">
                   <div class="story__media">
                     <picture>
-                      <source srcset="/assets/images/about-me/motorsport.avif" type="image/avif">
-                      <img src="/assets/images/about-me/motorsport.jpg" alt="Formula racing team at Autodromo Nazionale Monza"
-                           width="1000" height="1778" decoding="async"
-                           style="object-position: center 62%">
+                      <source srcset="/assets/images/about-me/user-4.avif" type="image/avif">
+                      <img src="/assets/images/about-me/user-4.jpg" alt="Nicolas Lenzi Loeffler with the trophy on the podium"
+                           width="904" height="1130" decoding="async">
                     </picture>
                   </div>
-                  <!-- Zu lang für die Bildbreite, bricht in jeder Ansicht um.
-                       Deshalb zwei feste Sinnabschnitte statt eines beliebigen
-                       Umbruchs mitten im Ortsnamen — siehe
-                       .story__caption--stacked. -->
-                  <figcaption class="story__caption story__caption--stacked">
-                    <span>Manuel Beck &amp; Nicolas Lenzi Loeffler</span>
-                    <span>Autodromo Nazionale Monza · August 2, 2026</span>
-                  </figcaption>
+                  <figcaption class="story__caption">Slovakia Ring · Orechová Potôň · August 23, 2026</figcaption>
+                </figure>
+              </div>
+            </article>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Racing — gleicher Inhalt und gleiche Reveal-Mechanik wie About Me -->
+      <div class="action-wrap" data-panel-trigger>
+        <span class="action-shell">
+          <button class="action action--racing" type="button" aria-expanded="false" aria-controls="panel-racing">
+            <span class="icon icon--racing"></span>
+            <span class="sr-only">Racing</span>
+          </button>
+        </span>
+
+        <!-- Eigener Inhalt: die Racing-Strecke erzählt die Saison 2026,
+             das About-Panel den Werdegang. Deshalb wird hier nichts mehr
+             geklont. -->
+        <div class="panel panel--about panel--racing" id="panel-racing" role="dialog" aria-label="Racing">
+          <button class="panel__close" type="button" data-panel-close aria-label="Schließen">✕</button>
+
+          <div class="about" data-about-scroller>
+
+            <article class="story story--media-first story--caption-right" data-story>
+              <div class="story__frame">
+                <figure class="story__figure">
+                  <div class="story__media">
+                    <picture>
+                      <source media="(max-width: 820px)" srcset="/assets/images/racing/race-1-mobile.avif" type="image/avif">
+                      <source media="(max-width: 820px)" srcset="/assets/images/racing/race-1-mobile.jpg" type="image/jpeg">
+                      <source srcset="/assets/images/racing/race-1.avif" type="image/avif">
+                      <img src="/assets/images/racing/race-1.jpg" alt="Empty main straight before the session"
+                           width="1600" height="900" decoding="async">
+                    </picture>
+                  </div>
+                  <figcaption class="story__caption">Autodromo Nazionale Monza · Monza · August 1, 2026</figcaption>
+                </figure>
+                <div class="story__text">
+                  <h2 class="story__title">Season 2026 &mdash; Four Championships, One Car</h2>
+                  <p class="story__body">
+                    One car, one entry, four championships &mdash; every weekend scores in all of them. After five of ten weekends he leads all four.
+                  </p>
+                  <p class="story__body">
+                    Grids of up to thirty cars across several car generations. Ten class wins, two podiums in the outright field.
+                  </p>
+                </div>
+              </div>
+            </article>
+
+            <article class="story story--caption-left" data-story>
+              <div class="story__frame">
+                <div class="story__text">
+                  <h2 class="story__title">Monza &mdash; Nine Places on Sunday</h2>
+                  <p class="story__body">
+                    A qualifying defect put him fifteenth on a grid of 29. Nine places gained in race one, eight in race two, both class wins taken from the back.
+                  </p>
+                  <p class="story__body">
+                    57 points, two fastest laps &mdash; and the mid-season switch to Franz W&ouml;ss Racing. His strongest weekend of the year.
+                  </p>
+                </div>
+                <figure class="story__figure">
+                  <div class="story__media">
+                    <picture>
+                      <source media="(max-width: 820px)" srcset="/assets/images/racing/race-2-mobile.avif" type="image/avif">
+                      <source media="(max-width: 820px)" srcset="/assets/images/racing/race-2-mobile.jpg" type="image/jpeg">
+                      <source srcset="/assets/images/racing/race-2.avif" type="image/avif">
+                      <img src="/assets/images/racing/race-2.jpg" alt="Formula 3 car of Nicolas Lenzi Loeffler in the pit lane"
+                           width="1600" height="900" decoding="async">
+                    </picture>
+                  </div>
+                  <figcaption class="story__caption">Autodromo Nazionale Monza · Monza · August 1, 2026</figcaption>
+                </figure>
+              </div>
+            </article>
+
+            <article class="story story--split story--caption-right" data-story>
+              <div class="story__frame">
+                <div class="story__text">
+                  <h2 class="story__title">Slovakia Ring &mdash; From the Pit Box to P3</h2>
+                  <p class="story__body">
+                    Race one started from the pit lane. Eleven places later: third in the outright field, both class wins, fourth-fastest lap of the entire event.
+                  </p>
+                  <p class="story__body">
+                    50 points from the weekend. Across this run of the season: 34 positions gained in six races.
+                  </p>
+                </div>
+                <figure class="story__figure">
+                  <div class="story__media">
+                    <picture>
+                      <source srcset="/assets/images/racing/race-3.avif" type="image/avif">
+                      <img src="/assets/images/racing/race-3.jpg" alt="Nicolas Lenzi Loeffler putting on his helmet in the paddock"
+                           width="904" height="1130" decoding="async">
+                    </picture>
+                  </div>
+                  <figcaption class="story__caption">Slovakia Ring · Orechová Potôň · August 23, 2026</figcaption>
+                </figure>
+              </div>
+            </article>
+
+            <article class="story story--split story--media-left story--caption-left" data-story>
+              <div class="story__frame">
+                <div class="story__text">
+                  <h2 class="story__title">The Step After 2026</h2>
+                  <p class="story__body">
+                    Three routes for 2027, all of them in conversation: F4 Spanish Championship with a &euro;500,000 development prize fund, F4 German Championship returning on the DTM platform, and Eurocup-3.
+                  </p>
+                  <p class="story__body">
+                    Team talks are under way &mdash; among others with MP Motorsport and TC Racing.
+                  </p>
+                </div>
+                <figure class="story__figure">
+                  <div class="story__media">
+                    <picture>
+                      <source srcset="/assets/images/racing/race-4.avif" type="image/avif">
+                      <img src="/assets/images/racing/race-4.jpg" alt="Team transporter of the F4 Spanish Championship and Eurocup 3 in the paddock"
+                           width="904" height="1130" decoding="async">
+                    </picture>
+                  </div>
+                  <figcaption class="story__caption">Paddock, Autodromo Nazionale Monza · Monza · August 1, 2026</figcaption>
                 </figure>
               </div>
             </article>
@@ -200,25 +283,58 @@
           </button>
         </span>
 
-        <div class="panel panel--contact" id="panel-contact" role="dialog" aria-label="Contact">
-          <p class="contact__lead">
-            Open to advisory inquiries, potential partnerships and conversations
-            around athlete development.
-          </p>
-          <p class="contact__line">
-            Email: <a href="mailto:mbeck.partner@outlook.com">mbeck.partner@outlook.com</a>
-          </p>
-          <p class="contact__line">
-            Phone: <a href="tel:+491602334747">+49.160.233.4747</a>
-          </p>
-        </div>
       </div>
 
     </nav>
+
+    <!-- Der Slot füllt den freien Raum unter der Icon-Reihe bis zur Oberkante
+         von „Follow Lenzi"; das Logo liegt mittig darin. -->
+    <div class="hero__logo-slot">
+      <span class="hero__logo" role="img" aria-label="Lenzi Loeffler"></span>
+
+      <!-- Das Contact-Panel steht hier und nicht beim Briefumschlag: nur so
+           kann es sich exakt zwischen Hero-Zeile und Wortmarke aufspannen
+           (siehe .panel--contact). Der Button findet es über aria-controls. -->
+      <div class="panel panel--contact" id="panel-contact" role="dialog" aria-label="Contact">
+        <p class="contact__line">
+          <span class="contact__label">Sporting development &amp; driver-to-driver</span>
+          <a href="mailto:nico@lenziloeffler.de">nico@lenziloeffler.de</a>
+        </p>
+        <p class="contact__line">
+          <span class="contact__label">Commercial partnerships</span>
+          <a href="mailto:partnerships@lenziloeffler.de">partnerships@lenziloeffler.de</a>
+        </p>
+        <p class="contact__line">
+          <span class="contact__label">Phone</span>
+          <a href="tel:+4917616374772">+49.176.16374772</a>
+        </p>
+      </div>
+    </div>
   </main>
 
+  <!-- Social — eigener Block zwischen Hero und Fußnote. Die drei Profile
+       stehen hier ohne Umkreisung, weil sie die Seite verlassen; die
+       umkreisten Icons oben öffnen dagegen Inhalte auf der Seite selbst. -->
+  <section class="social" aria-label="Social Media">
+    <p class="social__label">Follow Lenzi</p>
+    <div class="social__icons">
+      <a class="social__link" href="https://www.youtube.com/@nicolaslenziloeffler" target="_blank" rel="noopener noreferrer">
+        <span class="icon icon--youtube" aria-hidden="true"></span>
+        <span class="sr-only">YouTube-Profil (öffnet in neuem Tab)</span>
+      </a>
+      <a class="social__link" href="https://www.instagram.com/nicolas_lenzi_loeffler/" target="_blank" rel="noopener noreferrer">
+        <span class="icon icon--instagram" aria-hidden="true"></span>
+        <span class="sr-only">Instagram-Profil (öffnet in neuem Tab)</span>
+      </a>
+      <a class="social__link" href="https://www.facebook.com/nicolas.loffler?locale=de_DE" target="_blank" rel="noopener noreferrer">
+        <span class="icon icon--facebook" aria-hidden="true"></span>
+        <span class="sr-only">Facebook-Profil (öffnet in neuem Tab)</span>
+      </a>
+    </div>
+  </section>
+
   <footer class="footer">
-    <span class="footer__copy">© Manuel Beck</span>
+    <span class="footer__copy">© Lenzi Loeffler</span>
     <span class="footer__links">
       <a href="/impressum/">Impressum</a>
       <span class="footer__sep">|</span>

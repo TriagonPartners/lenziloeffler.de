@@ -1,250 +1,146 @@
-# manuel-beck.com — Betrieb und Deployment
+# lenziloeffler.de — Betrieb und Deployment
 
-Kurzanleitung für alles, was mit der Live-Seite zu tun hat.
-Stand: 14. August 2026.
+Stand: 5. September 2026.
 
 ---
 
 ## In einem Satz
 
-Die Seite ist reines HTML/CSS/JS ohne Framework. Sie liegt in `site/`, wird
-in einen S3-Bucket kopiert und von CloudFront ausgeliefert. Es gibt nichts zu
-bauen oder zu kompilieren — was in `site/` liegt, ist genau das, was online
-steht.
+Die Seite ist reines HTML/CSS/JS ohne Framework. Sie liegt in `site/`, wird in
+einen S3-Bucket kopiert und von CloudFront ausgeliefert. Es gibt nichts zu
+bauen — was in `site/` liegt, ist genau das, was online steht.
 
 ---
 
-## Die zwei Befehle fürs Deployment
+## Ausgangslage
 
-```bash
-cd ~/Desktop/manuel-beck.com
+`lenziloeffler.de` zeigt derzeit auf **Squarespace**:
 
-aws s3 sync site/ s3://manuel-beck.com --delete --exclude "*.md"
-aws cloudfront create-invalidation --distribution-id E3PTUBGVEU4KYY --paths "/*"
+```
+$ dig +short lenziloeffler.de NS
+nsa1.squarespacedns.com.  …
 ```
 
-Oder bequemer, mit Vorschau und Rückfrage:
+In AWS existiert für die Domain noch nichts — kein Bucket, keine Verteilung,
+kein Zertifikat. Der Umzug besteht aus drei Schritten, von denen zwei
+skriptgesteuert sind und einer von Hand bei Squarespace passiert.
+
+---
+
+## Schritt 1 — Infrastruktur anlegen
+
+```bash
+./infra.sh
+```
+
+Legt an:
+
+| Ressource | Wert |
+|---|---|
+| S3-Bucket | `lenziloeffler.de`, Region `eu-central-1`, **privat** |
+| Zertifikat | ACM in `us-east-1` für `lenziloeffler.de` + `www.` |
+| CloudFront | Verteilung mit Origin Access Control, HTTP/3, PriceClass 100 |
+| CloudFront Function | hängt bei Ordner-URLs `/index.html` an |
+| Bucket-Policy | Lesezugriff ausschließlich für diese Verteilung |
+
+Das Skript ist mehrfach ausführbar. Beim ersten Lauf bricht es nach dem
+Zertifikat ab und nennt zwei CNAME-Einträge zur Validierung — die bei
+Squarespace setzen, dann das Skript erneut starten.
+
+Am Ende schreibt es `deploy.conf` mit Bucket und Verteilungs-ID. Diese Datei
+liest `deploy.sh`.
+
+**Warum der Bucket privat bleibt:** Ausgeliefert wird nur über CloudFront.
+Der Bucket ist damit nicht direkt erreichbar, es gibt keine zweite öffentliche
+URL für dieselben Inhalte, und die Zugriffskontrolle liegt an einer Stelle.
+
+**Warum eine CloudFront Function:** S3 als REST-Origin liefert bei
+`/impressum/` kein `index.html` aus — das kann nur der S3-Website-Endpunkt,
+und der wiederum kann kein Origin Access Control. Die Function hängt das
+`/index.html` an, bevor die Anfrage den Bucket erreicht.
+
+---
+
+## Schritt 2 — DNS umstellen (von Hand, bei Squarespace)
+
+Nach `./infra.sh` nennt das Skript den CloudFront-Namen, etwa
+`d1234abcd.cloudfront.net`. Bei Squarespace unter *Domains → DNS-Einstellungen*:
+
+| Host | Typ | Ziel |
+|---|---|---|
+| `@` | ALIAS / ANAME | `<verteilung>.cloudfront.net` |
+| `www` | CNAME | `<verteilung>.cloudfront.net` |
+
+Die bestehenden Squarespace-A-Records auf `198.185.159.x` / `198.49.23.x`
+entfernen.
+
+> **Damit geht die bisherige Squarespace-Seite offline.** Vorher lässt sich
+> alles über `https://<verteilung>.cloudfront.net` testen — die Verteilung
+> funktioniert, bevor die Domain umgestellt ist.
+
+DNS-Umstellungen brauchen je nach TTL bis zu 24 Stunden, üblicherweise deutlich
+weniger.
+
+---
+
+## Schritt 3 — Deployment
 
 ```bash
 ./deploy.sh
 ```
 
-**Was die Befehle tun**
+Zeigt erst eine Vorschau, fragt nach, lädt dann hoch und leert den Cache.
+Am Ende prüft es die drei Seiten per HTTP-Status.
 
-| Teil | Bedeutung |
-|---|---|
-| `s3 sync site/ s3://…` | kopiert den Inhalt von `site/` in den Bucket |
-| `--delete` | löscht im Bucket alles, was lokal nicht mehr existiert |
-| `--exclude "*.md"` | hält interne Notizen (README-Dateien) aus dem Netz |
-| `create-invalidation --paths "/*"` | leert den CloudFront-Cache, sonst sehen Besucher bis zu 24 h die alte Version |
+Oder von Hand:
 
-**Wichtig: Cache-Regeln nicht weglassen.** Wer nur den einfachen `s3 sync`
-laufen lässt, lädt die Dateien **ohne** `Cache-Control` hoch. Browser raten
-dann selbst, wie lange sie eine Datei behalten dürfen — und raten bei einer
-älteren Datei sehr lange. Ergebnis: Besucher sehen tagelang die alte Seite,
-obwohl der Bucket längst die neue enthält. Genau das passierte am
-13. August 2026. `deploy.sh` setzt die Regeln korrekt:
+```bash
+aws s3 sync site/ s3://lenziloeffler.de --delete --exclude "*.md"
+aws cloudfront create-invalidation --distribution-id <ID> --paths "/*"
+```
 
-| Dateien | Regel | Warum |
+### Cache-Regeln
+
+Werden beim Upload mitgegeben, sonst raten Browser selbst — und raten lange.
+
+| Dateien | `Cache-Control` | Warum |
 |---|---|---|
-| HTML, CSS, JS | `no-cache` | immer gegenprüfen; mit ETag kostet das nur ein 304, eine neue Fassung kommt sofort an |
-| Bilder, Schrift, Favicon | `public, max-age=604800` | ändern sich selten, eine Woche im Cache spart Ladezeit |
+| `.avif .jpg .png .ico .svg .woff2 .ttf` | `public, max-age=604800` | ändern sich selten, eine Woche |
+| `.html .css .js .webmanifest` | `no-cache` | jedes Mal gegenprüfen; mit ETag kostet das nur ein 304 |
 
-Nach der Invalidierung dauert es etwa 30 Sekunden, bis die Änderung weltweit
-sichtbar ist.
-
----
-
-## Vorher lokal testen
-
-```bash
-cd ~/Desktop/manuel-beck.com/site
-python3 -m http.server 8000
-```
-
-Dann **http://localhost:8000** öffnen. Beenden mit `Strg` + `C`.
-
-**Nicht per Doppelklick öffnen.** Alle Pfade sind absolut (`/assets/…`), so
-wie AWS sie braucht. Ohne lokalen Server fehlen Schriftart, Icons und Bilder.
-
-Im Browser hart neu laden mit `Cmd` + `Shift` + `R`, sonst zeigt er das alte
-CSS aus seinem Zwischenspeicher.
+**Achtung bei Favicons:** Die Dateinamen bleiben über Änderungen hinweg gleich.
+Nach einem neuen Favicon kann bis zu eine Woche lang das alte ausgeliefert
+werden. Wer das nicht abwarten will, benennt die Datei um und passt die
+`<link>`-Tags an.
 
 ---
 
-## Die Infrastruktur
+## Rechte
 
-| | |
-|---|---|
-| AWS-Konto | 625738166923 |
-| IAM-Benutzer | `manuel-beck-deploy` (S3 + CloudFront Full Access) |
-| S3-Bucket | `manuel-beck.com`, Region eu-central-1 (Frankfurt) |
-| CloudFront-Distribution | `E3PTUBGVEU4KYY` |
-| Domains | manuel-beck.com, www.manuel-beck.com |
-| Zugriff auf den Bucket | über Origin Access Control — der Bucket ist **nicht** öffentlich, nur CloudFront darf lesen |
-| Versionierung | **nicht aktiviert** — gelöschte Dateien sind endgültig weg |
-
-Zugangsdaten liegen lokal in `~/.aws/`. Falls sie fehlen: `aws configure`,
-dann Access Key, Secret, Region `eu-central-1`, Format `json`. Prüfen mit
-`aws sts get-caller-identity`.
+Der IAM-Benutzer `manuel-beck-deploy` (Account `625738166923`) hat S3 und
+CloudFront, aber **kein Route 53 und kein IAM**. Für `lenziloeffler.de` ist
+das ausreichend, weil die Domain nicht in Route 53 liegt — die DNS-Einträge
+werden ohnehin bei Squarespace gesetzt.
 
 ---
 
-## Die CloudFront-Function — bitte nicht löschen
+## Fehlersuche
 
-**Name:** `manuel-beck-dir-index`
-**Typ:** viewer-request, Runtime `cloudfront-js-2.0`
-**Angelegt:** 13. August 2026
-
-```js
-function handler(event) {
-    var request = event.request;
-    var uri = request.uri;
-
-    if (uri.charAt(uri.length - 1) === '/') {
-        request.uri = uri + 'index.html';
-    } else if (uri.lastIndexOf('.') < uri.lastIndexOf('/')) {
-        request.uri = uri + '/index.html';
-    }
-
-    return request;
-}
-```
-
-**Warum sie existiert:** CloudFront holt die Dateien direkt vom S3-REST-
-Endpunkt. Der kennt keine Verzeichnisindizes — ein Aufruf von
-`/impressum/` sucht ein Objekt namens `impressum/` und findet nichts,
-Ergebnis 403. Die Function hängt bei Ordnerpfaden `index.html` an.
-
-Ohne sie sind **Impressum und Datenschutz nicht erreichbar**. Beim Impressum
-ist das eine Pflichtangabe, also kein kosmetisches Problem.
-
-Die alte Aerial-Seite brauchte das nie, weil sie aus einer einzigen
-`index.html` bestand.
-
----
-
-## Achtung: Terraform
-
-Im Konto liegt ein Bucket `terraform-website-deploy-state-…`. Falls diese
-Infrastruktur per Terraform verwaltet wird, ist sie jetzt nicht mehr
-deckungsgleich: die CloudFront-Function wurde direkt über die API angelegt,
-nicht über Terraform. Ein späteres `terraform apply` könnte sie entfernen —
-dann wären Impressum und Datenschutz wieder tot.
-
-**Vor dem nächsten Terraform-Lauf klären.** Wer auch immer den Terraform-Code
-betreut, sollte die Function dort nachtragen.
-
----
-
-## Darstellung auf Tablets, Telefonen und Surface
-
-Es gibt keine eigenen Fassungen je Gerät, sondern vier Schwellen in
-`site/assets/css/style.css` (Abschnitt 10). Android, iOS und Windows laufen
-durch dieselben Regeln — unterschieden wird nach Fenstergröße und Eingabeart,
-nie nach Betriebssystem.
-
-| Schwelle | Wirkung | Typische Geräte |
+| Symptom | Ursache | Abhilfe |
 |---|---|---|
-| `max-width: 1024px` | Overlay nutzt mehr Fläche | iPad quer, Android-Tablet quer |
-| `max-width: 820px` | Kapitel 3 und 4 stapeln: Bild oben, Text darunter | iPad Air 2 hoch, Android-Tablets hoch, alle Telefone |
-| `max-width: 700px` | Overlay füllt die Fläche, Footer wird zweizeilig | Telefone |
-| `max-height: 560px` | Contact-Panel in die Bildschirmmitte | Telefon quer |
-| `hover: none` | größere Tippziele, kein Hover-Zoom | alles mit Touch |
-
-Surface-Geräte brauchen nichts Eigenes: im Hochformat (912 px) greift die
-1024er-Schwelle, quer laufen sie wie ein Desktop. Mit angestecktem Stift oder
-Maus melden sie `pointer: fine` und bekommen automatisch die Hover-Effekte,
-im Tablet-Modus nicht.
-
-**Bild und Bildunterschrift gehören zusammen.** Die Spalte einer `figure` ist
-immer genau so breit wie der Bildkasten darin — bei den nebeneinander
-gesetzten Kapiteln über `min(42%, Höhe × 4/5)`, gestapelt über
-`min(100%, 52svh × 4/5)`. Ohne diese zweite Grenze bleibt die Spalte breit,
-während `aspect-ratio` zusammen mit `max-height` nur das Bild schmaler macht:
-Die Bildunterschrift richtet sich dann an der Overlay-Kante aus und steht
-sichtbar neben dem Bild statt darunter. Genau das war am 14. August 2026 auf
-dem iPad Air 2 zu sehen (Kapitel 3 und 4).
-
-**`svh` immer mit `vh`-Rückfall.** Ältere Android-Browser (Chrome < 108,
-Samsung Internet < 21, alte WebViews) kennen die Einheit nicht. Bei einer
-normalen Eigenschaft steht deshalb zuerst die `vh`-Zeile, bei
-Custom Properties übernimmt `@supports (height: 100svh)` die neue Fassung —
-sonst fällt die betroffene Angabe dort ersatzlos aus.
-
-**Vor Ort prüfen ohne Geräte.** macOS lässt Chrome-Fenster nicht beliebig
-schmal werden; ein Screenshot mit `--window-size=412,776` zeigt deshalb eine
-zu breite Seite. Verlässlich wird es mit einem `<iframe>` in der Zielgröße:
-Media Queries und `vh`/`svh`/`vw` beziehen sich darauf und nicht auf das
-Fenster.
+| Alte Fassung im Browser | CloudFront-Cache | `create-invalidation --paths "/*"` |
+| `/impressum/` gibt 403 | CloudFront Function fehlt oder nicht veröffentlicht | `./infra.sh` erneut ausführen |
+| Zertifikat bleibt `PENDING_VALIDATION` | CNAME bei Squarespace fehlt | Einträge prüfen, `dig +short <name> CNAME` |
+| Bild lädt, wird aber nicht gezeichnet | AVIF mit ungerader Kantenlänge | Ausschnitt mit geraden Kanten neu erzeugen (siehe README) |
+| Deployment bricht mit „temporäre Vorschaudateien" ab | `site/__*.html` aus lokalen Tests | löschen |
 
 ---
 
-## Bilder austauschen
+## Lokal testen
 
-Die Motive im About-Me-Overlay liegen in `site/assets/images/about-me/`,
-die unbearbeiteten Originale außerhalb in `originale/about-me/` (die werden
-nicht mit hochgeladen).
-
-Vorgehen und Fallstricke stehen ausführlich in
-`site/assets/images/about-me/README.md`. Die zwei wichtigsten:
-
-**Gerade Pixelmaße.** `sips` erzeugt bei ungerader Bildhöhe eine AVIF-Datei,
-die ihre Maße korrekt meldet, aber im Browser nichts anzeigt. Passierte beim
-München-Bild (1600 × 1199). Mit `--resampleHeight` skalieren, damit beide
-Kanten gerade sind.
-
-**Drehung bei iPhone-Fotos.** `sips` rechnet die EXIF-Drehung je nach
-Zielformat unterschiedlich ein — AVIF und JPEG können danach unterschiedlich
-herum liegen. Immer **beide** Dateien im Browser gegenprüfen, nicht `sips -g`
-vertrauen, das meldet die Maße vor der Drehung.
-
----
-
-## Wenn etwas schiefgeht
-
-**Seite zeigt noch die alte Version**
-Cache. Invalidierung erneut auslösen und im Browser hart neu laden.
-
-**Unterseite wirft 403**
-Die CloudFront-Function fehlt oder ist nicht mehr verknüpft. Prüfen mit:
 ```bash
-aws cloudfront get-distribution-config --id E3PTUBGVEU4KYY \
-  --query 'DistributionConfig.DefaultCacheBehavior.FunctionAssociations'
-```
-Es sollte `"Quantity": 1` erscheinen.
-
-**Schrift oder Icons fehlen**
-Content-Type im Bucket prüfen:
-```bash
-aws s3api head-object --bucket manuel-beck.com \
-  --key assets/fonts/PlusJakartaSans/PlusJakartaSans-Variable.woff2 \
-  --query ContentType
-```
-Erwartet: `font/woff2`. Falls `binary/octet-stream`, mit
-`aws s3 cp --content-type` korrigieren.
-
-**Versehentlich Falsches hochgeladen**
-Es gibt keine Versionierung im Bucket, also kein Zurückrollen auf AWS-Seite.
-Der lokale Stand in `site/` ist die einzige Quelle — einfach korrigieren und
-erneut deployen.
-
----
-
-## Was wo liegt
-
-```
-manuel-beck.com/
-├── site/              ← wird deployed
-│   ├── index.html
-│   ├── impressum/index.html
-│   ├── datenschutz/index.html
-│   └── assets/        css, js, fonts, icons, favicon, images
-├── originale/         Originalfotos, bleiben lokal
-├── deploy.sh          Deployment-Skript
-└── DEPLOY.md          diese Datei
+cd site && python3 -m http.server 8000
 ```
 
-Das alte Aerial-Template wurde am 13. August 2026 entfernt. Es liegt weiterhin
-im Branch `backup-aerial` und in der Git-Historie, falls doch einmal jemand
-hineinschauen will.
+`http://localhost:8000` — die absoluten Pfade brauchen einen Server, ein
+Doppelklick auf `index.html` genügt nicht.

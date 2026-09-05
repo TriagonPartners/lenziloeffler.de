@@ -5,3 +5,9 @@
 
 # Temporäre Vorschaudateien aus lokalen Tests
 site/__*.html
+
+# Von infra.sh geschrieben, enthält kontospezifische IDs
+deploy.conf
+
+# Schriftarchiv gehört zu den Originalen, nicht ins Deployment
+site/assets/fonts/*.zip
