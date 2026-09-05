@@ -367,12 +367,11 @@ body.is-preload *::after {
   color: var(--color-yellow);
 }
 
-/* Rechtsseiten: CDF-Hellgrau als Grund, CDF-Dunkelblau für Text, Trennlinie
-   und Zurück-Pfeil (der Pfeil ist eine Maske und nimmt currentColor an).
-   Die Textfarbe muss mitwechseln, sonst stünde Hellgrau auf Hellgrau. */
+/* Rechtsseiten: CDF-Dunkelblau als Grund, CDF-Hellgrau für Text, Trennlinie
+   und Zurück-Pfeil (der Pfeil ist eine Maske und nimmt currentColor an). */
 .page--dark {
-  background-color: var(--color-light);
-  color: var(--color-dark);
+  background-color: var(--color-dark);
+  color: var(--color-light);
 }
 
 /* Hero: eine zentrierte Flex-Column — Hero Line, Tagline und Icon-Reihe
