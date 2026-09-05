@@ -64,7 +64,7 @@
     });
     item.panel.classList.add('is-open');
     item.button.setAttribute('aria-expanded', 'true');
-    if (item.panel.classList.contains('panel--about')) startAbout(item.panel);
+    if (item.panel.classList.contains('panel--story')) startAbout(item.panel);
   }
 
   function close(item) {
@@ -72,7 +72,7 @@
     if (!isOpen(item)) return;
     item.panel.classList.remove('is-open');
     item.button.setAttribute('aria-expanded', 'false');
-    if (item.panel.classList.contains('panel--about')) resetAbout(item.panel);
+    if (item.panel.classList.contains('panel--story')) resetAbout(item.panel);
   }
 
   function closeAll() {

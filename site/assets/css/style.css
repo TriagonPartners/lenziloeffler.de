@@ -15,6 +15,26 @@
 
 /* 1. Font ----------------------------------------------------------------- */
 
+/* Ersatzschrift mit erzwungenen Metriken. Die Seite leitet zwei Maße aus der
+   Schrift ab — die Versalhöhe (--cap-height, bestimmt die Logohöhe) und den
+   Anteil des Zeilenkastens unter der Grundlinie (--claim-descent, verankert
+   das Contact-Panel). Ohne diese Überschreibungen stimmten beide nicht mehr,
+   solange Saira noch lädt oder gar nicht geladen werden kann.
+
+   ascent/descent auf Sairas Werte: die Grundlinie liegt bei line-height: 1
+   genau 84,8 % unter der Kastenoberkante. size-adjust gleicht die Versalhöhe
+   an (Saira 0,688em, Helvetica/Arial 0,716em → 96,1 %). */
+@font-face {
+  font-family: "Saira Fallback";
+  src: local("Helvetica Neue"), local("Helvetica"), local("Arial"),
+       local("Segoe UI"), local("Roboto"), local("Liberation Sans"),
+       local("DejaVu Sans");
+  ascent-override: 84.8%;
+  descent-override: 15.2%;
+  line-gap-override: 0%;
+  size-adjust: 96.1%;
+}
+
 @font-face {
   font-family: "Saira";
   /* Variable Font: eine Datei deckt 200–800 ab.
@@ -28,37 +48,57 @@
 /* 2. Design-Tokens -------------------------------------------------------- */
 
 :root {
-  /* Farben — ausschließlich diese vier Werte, keine abgeschwächten Varianten
-     für Text oder Linien. */
-  --color-yellow: #FC4615;
-  --color-ink: #0A1F33;
+  /* Farben — ausschließlich diese drei Werte, keine abgeschwächten Varianten
+     für Text oder Linien.
+
+       --color-dark    Grund aller Seiten und aller Pop-ups. Zugleich die
+                       Glyphenfarbe im Icon-Button beim Hover, wo sich das
+                       Verhältnis umkehrt.
+       --color-orange  Text und Icons auf der Startseite.
+       --color-light   Text auf den Rechtsseiten und in allen Pop-ups,
+                       Wortmarke, Trennlinie, Zurück-Pfeil.                 */
   --color-dark: #0A1F33;
+  --color-orange: #FC4615;
   --color-light: #E2E2E2;
 
-  /* Akzentfarben — ausschließlich für die Symbolfläche des jeweiligen Icons
-     im Hover-Zustand. Sonst nirgends verwendet.
+  /* Typo -----------------------------------------------------------------
+     Saira, lokal ausgeliefert. Der Fallback bekommt weiter unten dieselben
+     senkrechten Metriken aufgezwungen (siehe @font-face), damit die aus der
+     Schrift abgeleiteten Maße auch ohne sie stimmen. */
+  --font-sans: "Saira", "Saira Fallback", system-ui, -apple-system, "Segoe UI", sans-serif;
 
-     ABSICHT, nicht versehentlich: Grün–Weiß–Rot ergeben in der Reihenfolge
-     der drei Icons die italienische Trikolore, als leise Referenz. Sichtbar
-     immer nur einzeln, weil jeweils nur ein Icon gehovert wird — deshalb
-     tritt sie nie als Farbblock neben das Zweifarbschema.
-     Das Grün ist bewusst KEIN LinkedIn-Blau (#0a66c2), bitte nicht
-     „korrigieren". */
-  --color-accent-linkedin: #0A1F33;
-  --color-accent-about: #0A1F33;
-  --color-accent-contact: #0A1F33;
+  /* Nur zwei Stärken auf der ganzen Seite. Fett steht ausschließlich auf den
+     Titeln und Abschnittsüberschriften der Rechtsseiten sowie auf den
+     Kapitelüberschriften in den Pop-ups. */
+  --weight-regular: 400;
+  --weight-bold: 700;
 
-  /* Typo */
-  --font-sans: "Saira", system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Laufweite nach Schriftgrad: je größer der Grad, desto enger. */
+  --tracking-display: -0.03em;   /* Hero-Claim, 96px          */
+  --tracking-title: -0.02em;     /* Seitentitel, 30px         */
+  --tracking-subhead: -0.01em;   /* 17–28px                   */
+  --tracking-small: 0.01em;      /* Bildunterschrift, 12px    */
+
+  /* Zeilenhöhe nach Funktion. */
+  --lh-display: 1;      /* Hero-Claim                                    */
+  --lh-title: 1.15;     /* Seitentitel der Rechtsseiten                  */
+  --lh-tight: 1.2;      /* Tagline, „Follow Lenzi", Kapitelüberschrift   */
+  --lh-ui: 1.4;         /* Fußnote, Bildunterschrift, Rechtsseitentext   */
+  --lh-read: 1.5;       /* Fließtext in den Pop-ups                      */
+  --lh-base: 1.6;       /* Grundwert für alles ohne eigene Angabe        */
+
+  /* Lesegrößen. Zwei Werte, mehr braucht die Seite nicht. */
+  --text-body: 1rem;          /* Rechtsseiten                  */
+  --text-body-compact: 0.9375rem; /* Pop-ups                   */
 
   /* Hero-Skala: 96px auf Desktop, skaliert proportional nach unten.
      Alle vertikalen Abstände im Hero leiten sich hiervon ab, damit das
      kalibrierte Verhältnis (30px / 60px bei 96px Hero) erhalten bleibt. */
   --hero-size: clamp(2.75rem, 11.5vw, 6rem);          /* max 96px */
   --tagline-size: clamp(1.0625rem, 3.35vw, 1.75rem);  /* max 28px */
-  --tagline-line: calc(var(--tagline-size) * 1.2);    /* line-height der Tagline */
+  --tagline-line: calc(var(--tagline-size) * var(--lh-tight));
 
-  /* DIE Abstandseinheit der Seite. Gemessen wird von Elementkante zu
+  /* DIE Abstandseinheit der Seite („1u"). Gemessen wird von Elementkante zu
      Elementkante — 30px bei 96px Hero. Alles, was unten mit „1u" oder „2u"
      bezeichnet ist, leitet sich hiervon ab und skaliert mit dem Hero mit:
 
@@ -66,16 +106,17 @@
        Tagline        → Icon-Reihe (Oberkante)  1u
        „Follow Lenzi" → Social-Icons            1u
        Social-Icons   → Fußnote (Oberkante)     2u                         */
-  --space-hero-tagline: calc(var(--hero-size) * 0.3125); /* 96px → 30px */
+  --space-unit: calc(var(--hero-size) * 0.3125); /* 96px → 30px */
 
   /* Icon-Buttons — 33 % größer als zuvor (3.5rem → 4.65rem) */
   --icon-button-size: clamp(4rem, 14.6vw, 4.65rem);
-  --icon-glyph-size: 42%;
-  /* Dieselbe Glyphengröße als Länge statt als Prozentwert — die Social-Icons
-     stehen ohne Button, brauchen das Maß aber auf den Punkt genau gleich.
-     Die 42 % beziehen sich im Button auf dessen Inhaltsfläche, also auf die
-     Buttongröße abzüglich der beiden Randstärken. */
-  --icon-glyph-length: calc((var(--icon-button-size) - 2 * var(--icon-border)) * 0.42);
+  /* Ein Verhältnis, zwei Schreibweisen: als Prozentwert für die Glyphe im
+     Button (bezogen auf dessen Inhaltsfläche) und als Länge für die
+     Social-Icons, die keinen Button haben. Beide leiten sich vom selben
+     Wert ab, damit sie nicht auseinanderdriften können. */
+  --icon-glyph-ratio: 0.42;
+  --icon-glyph-size: calc(var(--icon-glyph-ratio) * 100%);
+  --icon-glyph-length: calc((var(--icon-button-size) - 2 * var(--icon-border)) * var(--icon-glyph-ratio));
   --icon-gap: clamp(1.25rem, 4.5vw, 1.75rem);
   --icon-border: 2px;
 
@@ -158,7 +199,7 @@
 
      Damit deckt es die Icons um 1u ab und lässt der Fußnote 1u Luft. */
   --footer-line: calc(14px * 1.4);   /* Schriftgröße × Zeilenhöhe der Fußnote */
-  --about-inset: calc(var(--footer-inset) + var(--footer-line) + var(--space-hero-tagline));
+  --about-inset: calc(var(--footer-inset) + var(--footer-line) + var(--space-unit));
   --about-height: calc(100vh - 2 * var(--about-inset));
 
   /* Innenrand. Links, rechts und oben doppelt so groß wie zuvor — der graue
@@ -169,16 +210,13 @@
   /* Abstand zwischen zwei Kapiteln: der frühere Wert (zweimal der Innenrand)
      minus 33 %. Desktop: 2 × 47,52 × 0,67 = 63,68px. */
   --story-gap: calc(2 * var(--about-frame) * 0.67);
-  /* Anschnitt des nächsten Kapitels. Muss den Innenrand überschreiten,
-     sonst ragt nur grauer Rand herein statt des Bildanfangs. */
-  --about-peek: calc(var(--about-frame) + 1.875rem);
 
   /* Höhe, die einem Bildkasten innerhalb eines Kapitels maximal bleibt:
      Overlay ohne Anschnitt und ohne Innenrand oben/unten. Bei den
      nebeneinander gesetzten Kapiteln leitet sich daraus auch die
      Spaltenbreite ab — Bild und Bildunterschrift sind dadurch immer gleich
      breit (siehe .story--split .story__figure). */
-  --split-media-max-h: calc(var(--about-height) - var(--about-peek) - 2 * var(--about-frame));
+  --split-media-max-h: calc(var(--about-height) - 2 * var(--about-frame));
 
   --panel-radius: 18px;
 }
@@ -215,8 +253,8 @@ body {
   min-height: 100svh;
   -webkit-tap-highlight-color: transparent;
   font-family: var(--font-sans);
-  font-weight: 400;
-  line-height: 1.6;
+  font-weight: var(--weight-regular);
+  line-height: var(--lh-base);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -364,7 +402,7 @@ body.is-preload *::after {
 
 .page--home {
   background-color: var(--color-dark);
-  color: var(--color-yellow);
+  color: var(--color-orange);
 }
 
 /* Rechtsseiten: CDF-Dunkelblau als Grund, CDF-Hellgrau für Text, Trennlinie
@@ -389,17 +427,17 @@ body.is-preload *::after {
 .hero__title {
   margin: 0;
   font-size: var(--hero-size);
-  font-weight: 400;
-  line-height: 1;
-  letter-spacing: -0.03em;
+  font-weight: var(--weight-regular);
+  line-height: var(--lh-display);
+  letter-spacing: var(--tracking-display);
 }
 
 .hero__tagline {
-  margin: var(--space-hero-tagline) 0 0;
+  margin: var(--space-unit) 0 0;
   font-size: var(--tagline-size);
-  font-weight: 400;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
+  font-weight: var(--weight-regular);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-subhead);
 }
 
 /* Der freie Raum im Hero wird auf zwei gleich große Flächen aufgeteilt:
@@ -450,8 +488,8 @@ body.is-preload *::after {
   width: 100%;
   margin-top: clamp(1.5rem, 4vh, 2.5rem);
   font-size: 14px;
-  font-weight: 400;
-  line-height: 1.4;
+  font-weight: var(--weight-regular);
+  line-height: var(--lh-ui);
 }
 
 /* Auf der Startseite trägt der Social-Block den gesamten Abstand nach oben
@@ -495,17 +533,17 @@ body.is-preload *::after {
   flex-direction: column;
   align-items: center;
   width: 100%;
-  margin-bottom: calc(2 * var(--space-hero-tagline));
+  margin-bottom: calc(2 * var(--space-unit));
   text-align: center;
 }
 
 /* Gleiche Größe, Laufweite und Stärke wie „Formula 3 Driver". */
 .social__label {
-  margin: 0 0 var(--space-hero-tagline);
+  margin: 0 0 var(--space-unit);
   font-size: var(--tagline-size);
-  font-weight: 400;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
+  font-weight: var(--weight-regular);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-subhead);
 }
 
 .social__icons {
@@ -531,7 +569,7 @@ body.is-preload *::after {
 }
 
 .social__link:focus-visible {
-  outline: 2px solid var(--color-yellow);
+  outline: 2px solid var(--color-orange);
   outline-offset: 4px;
   border-radius: 2px;
   transform: translateY(-2px);
@@ -557,7 +595,7 @@ body.is-preload *::after {
   gap: var(--icon-gap);
   /* 1u — genau so weit unter der Tagline wie die Tagline unter der
      Hero-Zeile. Gemessen bis zur Oberkante der Umkreisung. */
-  margin-top: var(--space-hero-tagline);
+  margin-top: var(--space-unit);
 }
 
 /* Wrapper hält Button + zugehöriges Panel zusammen (Positionierungs-Anker,
@@ -576,16 +614,16 @@ body.is-preload *::after {
    Im Hover kehrt sich das um: schwarze Fläche, und die Symbolfläche nimmt
    die Akzentfarbe des jeweiligen Icons an (siehe .action--*). */
 .action {
-  --action-hover-glyph: var(--color-ink);
+  --action-hover-glyph: var(--color-dark);
   display: grid;
   place-items: center;
   width: var(--icon-button-size);
   height: var(--icon-button-size);
   padding: 0;
-  border: var(--icon-border) solid var(--color-yellow);
+  border: var(--icon-border) solid var(--color-orange);
   border-radius: 50%;
   background-color: var(--color-dark);
-  color: var(--color-yellow);
+  color: var(--color-orange);
   cursor: pointer;
   text-decoration: none;
   transition: transform 180ms var(--ease-soft),
@@ -596,8 +634,8 @@ body.is-preload *::after {
 .action:focus-visible,
 .action[aria-expanded="true"] {
   transform: translateY(-2px);
-  background-color: var(--color-yellow);
-  color: var(--color-ink);
+  background-color: var(--color-orange);
+  color: var(--color-dark);
 }
 
 /* Nur mit echtem Zeiger. Auf Touch-Geräten bliebe :hover nach dem Antippen
@@ -605,14 +643,14 @@ body.is-preload *::after {
 @media (hover: hover) and (pointer: fine) {
   .action:hover {
     transform: translateY(-2px);
-    background-color: var(--color-yellow);
-    color: var(--color-ink);
+    background-color: var(--color-orange);
+    color: var(--color-dark);
   }
 }
 
 /* Akzentfarbe je Icon — greift über currentColor auf die Maskenfläche. */
 .action:focus-visible {
-  outline: 2px solid var(--color-yellow);
+  outline: 2px solid var(--color-orange);
   outline-offset: 3px;
 }
 
@@ -628,11 +666,6 @@ body.is-preload *::after {
   mask-repeat: no-repeat;
   -webkit-mask-size: contain;
   mask-size: contain;
-}
-
-.icon--linkedin {
-  -webkit-mask-image: url("/assets/icons/linkedin-in.svg");
-  mask-image: url("/assets/icons/linkedin-in.svg");
 }
 
 .icon--user {
@@ -709,31 +742,6 @@ body.is-preload *::after {
   margin: 0;
 }
 
-/* Contact: drei beschriftete Blöcke statt einer Aufzählung. Das Label steht
-   in derselben Farbe, nur etwas kleiner und gesperrt — kein zweiter Grauwert,
-   das Zweifarbschema bleibt. */
-/* Drei beschriftete Blöcke, kein Fließtext: das Panel wird überflogen, nicht
-   gelesen. Das Label sagt, wofür die Adresse zuständig ist. */
-.contact__lead {
-  margin-bottom: 0.9rem;
-  line-height: 1.5;
-}
-
-.contact__line {
-  line-height: 1.5;
-}
-
-.contact__line + .contact__line {
-  margin-top: 0.6rem;
-}
-
-.contact__label {
-  display: block;
-  font-size: 11px;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-}
-
 /* Der Zeiger bleibt über der Panelfläche der normale Pfeil. Ohne diese
    Regel schlägt er über jedem Textblock in den Text-Cursor um — bei einem
    Panel, das beim Hovern aufgeht, wirkt das unruhig, und es signalisiert
@@ -764,7 +772,7 @@ body.is-preload *::after {
    nach unten zur Wortmarke. */
 .panel--contact {
   top: calc(-1 * (var(--icon-button-size)
-                  + 2 * var(--space-hero-tagline)
+                  + 2 * var(--space-unit)
                   + var(--tagline-line)
                   + var(--hero-size) * var(--claim-descent)));
   bottom: calc(50% + var(--logo-height) / 2);
@@ -810,20 +818,21 @@ body.is-preload *::after {
   .contact__line + .contact__line {
     margin-top: 0.4rem;
   }
-
-  .contact__label {
-    font-size: 10px;
-  }
 }
 
-/* Über .panel--contact geschrieben, weil .panel p oben margin: 0 setzt und
-   allein mit .contact__lead spezifischer wäre. */
+/* Einleitungsabsatz und Kontaktzeilen. Über .panel--contact geschrieben,
+   weil .panel p weiter oben margin: 0 setzt. Beide auf derselben Zeilenhöhe
+   — vorher liefen sie im selben Kasten auf 1,55 und 1,5 auseinander. */
 .panel--contact .contact__lead {
   margin-bottom: 1.1rem;
-  line-height: 1.55;
+  line-height: var(--lh-read);
 }
 
-.contact__line + .contact__line {
+.panel--contact .contact__line {
+  line-height: var(--lh-read);
+}
+
+.panel--contact .contact__line + .contact__line {
   margin-top: 0.2rem;
 }
 
@@ -870,7 +879,7 @@ body.is-preload *::after {
    Rand des echten nächsten Bildes: solange es nicht aufgedeckt ist, liegt
    eine Weichzeichnung darauf, die beim Einrasten weichblendet. */
 
-.panel--about {
+.panel--story {
   position: fixed;
   top: 50%;
   right: auto;
@@ -885,7 +894,7 @@ body.is-preload *::after {
   transform: translate(-50%, -50%);
 }
 
-.panel--about.is-open {
+.panel--story.is-open {
   transform: translate(-50%, -50%);
 }
 
@@ -952,15 +961,15 @@ body.is-preload *::after {
 .story__title {
   margin: 0 0 0.4rem;
   font-size: clamp(1.0625rem, 1.6vw, 1.25rem);
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.01em;
+  font-weight: var(--weight-bold);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-subhead);
 }
 
 .story__body {
   margin: 0;
-  font-size: clamp(0.8125rem, 0.95vw, 0.875rem);
-  line-height: 1.5;
+  font-size: var(--text-body-compact);
+  line-height: var(--lh-read);
 }
 
 /* Absatzabstand. Muss spezifischer sein als .panel p { margin: 0 }. */
@@ -1001,20 +1010,10 @@ body.is-preload *::after {
 .story__caption {
   flex: 0 0 auto;
   font-size: clamp(0.6875rem, 0.85vw, 0.75rem);
-  line-height: 1.4;
-  letter-spacing: 0.01em;
+  line-height: var(--lh-ui);
+  letter-spacing: var(--tracking-small);
   transition: opacity var(--fade) var(--ease-soft) 100ms,
               filter var(--fade) var(--ease-soft) 100ms;
-}
-
-/* Eine Bildunterschrift (Kapitel 4) ist länger als die Bildbreite und bricht
-   deshalb überall um — am Desktop mitten im Ortsnamen, auf Tablets mit einem
-   einzelnen Mittelpunkt am Zeilenende. Beides liest sich wie ein Versehen.
-   Die beiden Sinnabschnitte im Markup stehen daher fest untereinander:
-   Personen, darunter Ort und Datum. Gleiche Höhe wie der automatische Umbruch,
-   nur an einer gewollten Stelle. */
-.story__caption--stacked > span {
-  display: block;
 }
 
 .story--caption-right .story__caption {
@@ -1199,7 +1198,7 @@ body.is-preload *::after {
   gap: 0.6rem;
   margin-bottom: 0.75rem;
   font-size: 15px;
-  font-weight: 400;
+  font-weight: var(--weight-regular);
   text-decoration: none;
   color: inherit;
 }
@@ -1256,11 +1255,9 @@ body.is-preload *::after {
 .legal__title {
   margin: 0 0 0.55rem;
   font-size: clamp(1.375rem, 2.6vw, 1.9rem);
-  /* Die einzigen fetten Stellen der Seite: die beiden Seitentitel und die
-     Abschnittsüberschriften auf den Rechtsseiten. Alles andere ist 400. */
-  font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
+  font-weight: var(--weight-bold);
+  line-height: var(--lh-title);
+  letter-spacing: var(--tracking-title);
   /* „Datenschutzerklärung" ist lang — darf umbrechen statt zu überlaufen. */
   overflow-wrap: break-word;
   hyphens: auto;
@@ -1272,19 +1269,19 @@ body.is-preload *::after {
 .legal__heading {
   margin: 0.7rem 0 0.2rem;
   font-size: 1.0625rem;
-  font-weight: 700;
-  line-height: 1.4;
-  letter-spacing: -0.01em;
+  font-weight: var(--weight-bold);
+  line-height: var(--lh-ui);
+  letter-spacing: var(--tracking-subhead);
 }
 
 .legal p {
   margin: 0 0 0.5rem;
-  font-size: 1rem;
+  font-size: var(--text-body);
   /* Beide Rechtsseiten teilen sich diesen Wert. Etwas enger als der
      Fließtext sonst, damit die Datenschutzerklärung samt Footer ohne
      Scrollen auf eine Bildschirmhöhe passt — mehr geht bei diesem
      Textumfang nicht, ohne dass der Footer unter die Kante rutscht. */
-  line-height: 1.4;
+  line-height: var(--lh-ui);
 }
 
 .legal p:last-child {
@@ -1313,13 +1310,10 @@ body.is-preload *::after {
   margin-top: 1rem;
 }
 
-/* Die Datenschutzseite nutzt dieselbe Typografie wie das Impressum
-   (Schriftgrößen, Zeilenabstand, Abstände) — nur die Fließtexte stehen im
-   Blocksatz. Zeilen mit hartem Umbruch (Adressblock) bleiben davon
-   unberührt, die werden vom Browser nicht gedehnt. */
-.page--justify .legal p {
-  text-align: justify;
-}
+/* Beide Rechtsseiten teilen sich Typografie und Ausrichtung. Der Blocksatz
+   auf der Datenschutzseite ist entfallen: in den schmalen Spalten riss er die
+   Wortabstände sichtbar auseinander, und die beiden Seiten sahen ohne Grund
+   unterschiedlich aus. */
 
 /* 10. Responsive ---------------------------------------------------------- */
 
@@ -1336,15 +1330,6 @@ body.is-preload *::after {
 @media (max-width: 820px) {
   :root {
     --about-frame: clamp(1.25rem, 5vw, 1.75rem);
-    --about-peek: calc(var(--about-frame) + 1.75rem);
-  }
-
-  /* Feste Kapitelhöhen aufheben — auf kleinen Schirmen hat Lesbarkeit
-     Vorrang vor dem gleichmäßigen Anschnitt. */
-  .story,
-  .story:not(:last-child) {
-    height: auto;
-    min-height: calc(100% - var(--about-peek));
   }
 
   /* column-reverse stellt das Bild voran — im Markup steht bei diesen
@@ -1407,7 +1392,7 @@ body.is-preload *::after {
      wirkte derselbe Grad zu dominant neben den Bildern. */
   .story__body {
     font-size: 0.875rem;
-    line-height: 1.5;
+    line-height: var(--lh-read);
   }
 
   .story__title {
@@ -1435,11 +1420,6 @@ body.is-preload *::after {
   .story:not(.is-revealed) .story__text,
   .story:not(.is-revealed) .story__caption {
     filter: blur(3px);
-  }
-
-  /* Blocksatz bricht auf schmalen Spalten auseinander */
-  .page--justify .legal p {
-    text-align: left;
   }
 }
 
@@ -1518,7 +1498,7 @@ body.is-preload *::after {
   }
 
   .legal p {
-    line-height: 1.55;
+    line-height: var(--lh-read);
     margin-bottom: 0.7rem;
   }
 
@@ -1567,6 +1547,22 @@ body.is-preload *::after {
   }
 }
 
+/* Sehr kleine Schirme (iPhone SE der ersten Generation und schmaler): der
+   Streifen misst dort keine 150px mehr. Schrift und Innenrand gehen so weit
+   herunter, wie es lesbar bleibt, damit das Panel Claim und Wortmarke nicht
+   überdeckt. */
+@media (max-width: 360px) and (max-height: 600px) {
+  .panel--contact {
+    font-size: 11px;
+    padding-block: 0.4rem;
+    padding-inline: 0.9rem;
+  }
+
+  .panel--contact .contact__lead {
+    margin-bottom: 0.5rem;
+  }
+}
+
 /* --- Touch: größere Ziele, kein Hover-Zoom ----------------------------- */
 @media (hover: none) {
   .panel__close {
@@ -1602,17 +1598,13 @@ body.is-preload *::after {
    Hier reicht der Platz unter der Tagline nicht mehr für das Contact-Panel,
    deshalb rückt es in die Bildschirmmitte. */
 @media (max-height: 560px) {
-  :root {
-    --about-peek: calc(var(--about-frame) + 1rem);
-  }
-
   /* Zwei Stellschrauben statt vier: die Hero-Größe und die Abstandseinheit.
      Über --hero-size zieht die Wortmarke mit (ihre Höhe IST die Höhe des
      Claims), über die Einheit bleiben Tagline, Icon-Reihe, „Follow Lenzi"
      und die Fußnote im Verhältnis 1u : 1u : 1u : 2u zueinander. */
   :root {
     --hero-size: clamp(2rem, 8vh, 3.5rem);
-    --space-hero-tagline: clamp(0.625rem, 2.2vh, 1.125rem);
+    --space-unit: clamp(0.625rem, 2.2vh, 1.125rem);
   }
 }
 

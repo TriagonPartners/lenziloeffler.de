@@ -38,7 +38,7 @@ DEPLOY.md               Betriebsanleitung
 Alle senkrechten Abstände der Startseite leiten sich aus **einem** Wert ab:
 
 ```css
---space-hero-tagline: calc(var(--hero-size) * 0.3125);   /* 30px bei 96px Hero */
+--space-unit: calc(var(--hero-size) * 0.3125);   /* 30px bei 96px Hero */
 ```
 
 | Von | Nach | Abstand |
@@ -111,8 +111,30 @@ Trennlinie.
 
 Saira, lokal aus `assets/fonts/` — keine Anfrage an Google, wie es die
 Datenschutzerklärung zusagt. Eine Variable-Font-Datei deckt 200–800 ab.
-Gewicht **400 überall**; die einzigen Ausnahmen sind die Seitentitel und
-Abschnittsüberschriften auf Impressum und Datenschutz (700).
+
+Zwei Stärken (`--weight-regular` 400, `--weight-bold` 700). Fett steht an
+genau zwei Stellen: Titel und Abschnittsüberschriften der Rechtsseiten sowie
+Kapitelüberschriften in den Pop-ups.
+
+Laufweite und Zeilenhöhe hängen an Tokens statt an Einzelwerten:
+
+| Token | Wert | Wofür |
+|---|---|---|
+| `--tracking-display` | −0,03 em | Hero-Claim, 96 px |
+| `--tracking-title` | −0,02 em | Seitentitel, 30 px |
+| `--tracking-subhead` | −0,01 em | 17–28 px |
+| `--tracking-small` | +0,01 em | Bildunterschrift, 12 px |
+| `--lh-display` … `--lh-base` | 1 / 1,15 / 1,2 / 1,4 / 1,5 / 1,6 | Display → Grundwert |
+
+Zwei Lesegrößen: `--text-body` (16 px, Rechtsseiten) und
+`--text-body-compact` (15 px, Pop-ups).
+
+**Ersatzschrift mit erzwungenen Metriken.** Die Seite leitet zwei Maße aus
+Saira ab — die Versalhöhe (`--cap-height`, bestimmt die Logohöhe) und den
+Anteil des Zeilenkastens unter der Grundlinie (`--claim-descent`, verankert
+das Contact-Panel). Ein zweites `@font-face` („Saira Fallback") zwingt der
+Ersatzschrift dieselben senkrechten Metriken auf, damit beide Maße auch
+während des Ladens und bei fehlender Schrift stimmen.
 
 ### Farben
 
@@ -120,10 +142,9 @@ Vier Werte, keine abgeschwächten Varianten:
 
 | Token | Wert | Verwendung |
 |---|---|---|
-| `--color-dark` | `#0A1F33` | Hintergrund aller Seiten |
-| `--color-yellow` | `#FC4615` | Text und Icons der Startseite |
-| `--color-light` | `#E2E2E2` | Text der Rechtsseiten, Wortmarke |
-| `--color-ink` | `#0A1F33` | Glyphen auf hellem Grund |
+| `--color-dark` | `#0A1F33` | Grund aller Seiten und Pop-ups; Glyphe im Icon-Button beim Hover |
+| `--color-orange` | `#FC4615` | Text und Icons der Startseite |
+| `--color-light` | `#E2E2E2` | Text der Rechtsseiten und Pop-ups, Wortmarke, Trennlinie |
 
 Die Wortmarke liegt in einer eigenen Fassung vor, in der die dunkelblauen
 Flächen im CDF-Hellgrau laufen — im Original wären sie auf dunkelblauem Grund
