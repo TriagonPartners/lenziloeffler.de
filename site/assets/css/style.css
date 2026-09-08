@@ -56,10 +56,16 @@
                        Verhältnis umkehrt.
        --color-orange  Text und Icons auf der Startseite.
        --color-light   Text auf den Rechtsseiten und in allen Pop-ups,
-                       Wortmarke, Trennlinie, Zurück-Pfeil.                 */
+                       Wortmarke, Trennlinie, Zurück-Pfeil.
+       --color-ruby    Der erste der beiden Querbalken der Wortmarke. Trägt
+                       im Racing-Pop-up die äußere Linie des Streckenverlaufs
+                       und die erste Spalte der Countdown-Kacheln — der
+                       Balkenwechsel Rubinrot/Orange der Wortmarke findet
+                       sich dort wieder.                                     */
   --color-dark: #0A1F33;
   --color-orange: #FC4615;
   --color-light: #E2E2E2;
+  --color-ruby: #770B23;
 
   /* Typo -----------------------------------------------------------------
      Saira, lokal ausgeliefert. Der Fallback bekommt weiter unten dieselben
@@ -89,7 +95,12 @@
 
   /* Lesegrößen. Zwei Werte, mehr braucht die Seite nicht. */
   --text-body: 1rem;          /* Rechtsseiten                  */
-  --text-body-compact: 0.9375rem; /* Pop-ups                   */
+  --text-body-compact: 0.9375rem; /* Pop-ups; ab 820px 15 -> 14px */
+
+  /* Grad der Kapitelüberschriften in den Pop-ups. Steht als Token, weil ihn
+     zwei Stellen teilen: die Überschriften selbst („Standings & Results",
+     „Building Towards 2027") und der Ortsname im Countdown („BRNO"). */
+  --text-story-title: clamp(1.0625rem, 1.6vw, 1.25rem);
 
   /* Hero-Skala: 96px auf Desktop, skaliert proportional nach unten.
      Alle vertikalen Abstände im Hero leiten sich hiervon ab, damit das
@@ -120,6 +131,119 @@
   --icon-gap: clamp(1.25rem, 4.5vw, 1.75rem);
   --icon-border: 2px;
 
+  /* --- Schräger Rahmen der drei Schaltflächen ---------------------------
+     Die Umrandung nimmt das i-Pünktchen der Wortmarke auf. Es ist keine
+     Schätzung, sondern aus dem Pfad der Klasse .g in
+     originale/logo lenzi_bunt blau freigestellt_svg.svg gerechnet:
+
+       untere Waagerechte  (300.10 | 8.56) -> (285.42 | 8.56)   14,68 lang
+       obere  Waagerechte  (294.00 | 0.01) -> (308.71 | 0.01)   14,71 lang
+       Höhe der Fläche     8,55
+       Versatz der Schräge 8,58
+
+       atan(8,58 / 8,55) = 45,10° gegen die Senkrechte
+
+     Das Pünktchen ist also ein Parallelogramm mit waagerechter Ober- und
+     Unterkante, 45,10° geneigten Seiten und kräftig gerundeten Ecken — die
+     Sehne der Eckrundung misst 3,75, das sind 43,8 % der Höhe.
+
+     Der Button ist breiter als das Pünktchen, weil er eine Beschriftung
+     trägt. Gestreckt werden deshalb nur die beiden Waagerechten; Winkel und
+     Eckrundung bleiben am Original. Negativ, weil skewX() mit negativem Wert
+     die Oberkante nach rechts schiebt — die Fläche lehnt nach vorn, wie das
+     Pünktchen.
+
+     Die Reihe behält ihre Höhe (--icon-button-size), damit der Abstand zur
+     Hero-Zeile und zur Wortmarke unverändert bleibt; sichtbar ist nur der
+     niedrigere Rahmen, senkrecht mittig darin. */
+  --slant: -45.1deg;
+  /* tan(45,10°). Die Scherung verschiebt die Oberkante um genau diesen Anteil
+     der Rahmenhöhe nach rechts — daraus folgen der waagerechte Überhang der
+     Fläche über ihren Kasten (die halbe Rahmenhöhe je Seite) und die
+     Kantengeometrie, die main.js zeichnet. */
+  --slant-tan: 1.0035;
+  /* 1 / cos(45,10°) = sqrt(1 + tan²). Wandelt einen Abstand SENKRECHT zur
+     45°-Kante in einen waagerechten um — gebraucht überall dort, wo zwei
+     geneigte Kanten aufeinandertreffen sollen. */
+  --slant-sec: 1.4167;
+  /* Rahmenhöhe folgt dem Schriftgrad: Zeilenkasten plus Luft. Bleibt unter
+     --icon-button-size, damit die Reihe ihre Höhe behält und Hero-Zeile wie
+     Wortmarke stehenbleiben. */
+  --action-frame-h: min(calc(var(--action-label-size) * 2), var(--icon-button-size));
+  /* --- Breite der Schaltflächen ----------------------------------------
+     Alle drei sind gleich breit, das Maß nimmt die längste Beschriftung.
+     Sie stehen in Versalien, maßgeblich ist also „PARTNERSHIPS". Die Breiten
+     sind gesetzt gemessen, in Saira Regular mit der Laufweite von
+     --tracking-small und mit Kerning (Versalien wie „PA" und „TN" ziehen
+     sich zusammen, die Fontdatei allein gibt 0,04 em zu viel aus):
+
+       Partnerships    6,0306 em      PARTNERSHIPS    7,6172 em
+
+     Der Innenabstand vom Wort zur Umrandung ist verdoppelt. Vorher blieben
+     bei 7,4 em Breite (7,4 − 6,0306) / 2 = 0,6847 em je Seite; jetzt sind es
+     1,3694 em:
+
+       7,6172 + 2 × 1,3694 = 10,356 em
+
+     Gemessen ist der Abstand an der Kastenkante, also auf halber Höhe des
+     Rahmens — dort, wo die 45°-Schräge die senkrechte Kastenkante schneidet. */
+  --action-width-em: 10.356;
+  --action-width: calc(var(--action-label-size) * var(--action-width-em));
+  /* Abgeleitet vom Grad der Sub-Hero-Zeile „Formula 3 Driver.", davon 53,6 %
+     — das sind 67 % davon, um 20 % zurückgenommen. Rahmenhöhe, Rahmenbreite
+     und Strichstärke rechnen alle aus diesem Wert, sie werden also im
+     gleichen Verhältnis kleiner; --space-actions rechnet aus der Rahmenhöhe
+     und hält den Abstand oben und unten weiter exakt gleich.
+
+     Der Faktor sitzt bewusst NUR hier: --action-width und --action-frame-h
+     rechnen beide aus diesem Wert, also schrumpfen Breite, Rahmenhöhe und
+     Schrift proportional mit. Die Höhe der REIHE hängt dagegen an
+     --icon-button-size und bleibt unberührt — der Abstand nach oben zur
+     Tagline und nach unten zur Wortmarke ändert sich dadurch nicht. */
+  /* Der zweite Wert ist eine Notbremse für schmale Fenster, keine
+     Gestaltung: drei Schaltflächen à 10,394 em, zwei Zwischenräume und der
+     45°-Überhang der äußeren beiden (je eine halbe Rahmenhöhe, zusammen
+     2 × 1,0035 Beschriftungsgrade) müssen zwischen die Seitenränder passen.
+
+       3 × 10,356 + 2 × 1,0035 = 33,075
+
+     Ohne diese Grenze lief die Reihe auf Telefonen über den Seitenrand
+     hinaus — mit den breiteren Versalien deutlicher als vorher. Sie greift
+     erst unter rund 640px Fensterbreite; darüber gilt unverändert der
+     Anteil an „Formula 3 Driver.". */
+  --action-label-size: min(
+    calc(var(--tagline-size) * 0.536),
+    calc((100vw - 2 * var(--page-pad-x) - 2 * var(--icon-gap)) / 33.075)
+  );
+  /* --- DIE Strichstärke der Seite --------------------------------------
+     Eine einzige Linienbreite für alles Gezogene: Umrandung der drei
+     Schaltflächen, Umrandung der Countdown-Kacheln, Streckenverlauf,
+     Trennlinien in Tabellenstand und Rennliste, Trennlinie der Rechtsseiten.
+
+     Ihr Maß ist nicht gesetzt, sondern gemessen: der senkrechte Stamm des
+     „R" auf dem Racing-Button. In Saira Regular läuft seine linke Kante bei
+     x = 100, die rechte bei x = 186 (Einheiten, upem = 1000) — der Stamm ist
+     also 86/1000 = 0,086 em breit, über alle Schriftgrade konstant.
+
+     Bezug ist der Grad der Button-Beschriftung. Damit ist die Linie exakt so
+     dick wie der Buchstabe daneben, auf jedem Fenster.                    */
+  --stem-ratio: 0.086;
+  --line-w: calc(var(--action-label-size) * var(--stem-ratio));
+  /* Eckrundung. Beim Pünktchen sind nur die beiden STUMPFEN Ecken gerundet
+     (oben links, unten rechts), die spitzen bleiben scharf.
+
+     Maßgeblich ist die SEHNE der Rundung: im Original misst sie 3,75 bei
+     8,55 Höhe, also 43,8 % der Rahmenhöhe. Aus Sehne und Öffnungswinkel
+     (180° − 45,10°) rechnet main.js den Radius des echten Kreisbogens.
+
+     --action-frame-radius bleibt daneben stehen: es ist der Näherungswert
+     für die Rückfallebene ohne JavaScript, wo der Rahmen weiterhin eine
+     gescherte border-radius-Rundung ist. skewX() verzerrt die zwangsläufig
+     zur Ellipse — 0,30 der Rahmenhöhe ist der Wert, bei dem die Silhouette
+     im Übereinanderlegen am nächsten am Original liegt. */
+  --action-frame-chord: 0.438;
+  --action-frame-radius: calc(var(--action-frame-h) * 0.30);
+
   /* --- Wortmarke zwischen Icon-Reihe und „Follow Lenzi" ------------------
      Ober- und Unterkante des Logos liegen auf Ober- und Unterkante des „N"
      im Hero-Claim. Das „N" steht auf der Grundlinie (keine Unterlänge), seine
@@ -136,15 +260,30 @@
      Seitenrand liefe; dort wird es proportional kleiner. */
   --logo-ratio: 308.7 / 37.55;   /* Seitenverhältnis der Logodatei */
   --cap-height: 0.688;           /* Versalhöhe von Saira, in em */
+  /* Anteil des Zeilenkastens ÜBER der Grundlinie bei line-height: 1. Saira
+     bringt ascent 1,135 und descent 0,439 mit (hhea), zusammen 1,574 em; bei
+     line-height: 1 wird dieser Kasten mit −0,287 em Halbdurchschuss auf 1 em
+     zentriert, die Grundlinie liegt dann 1,135 − 0,287 = 0,848 em unter der
+     Oberkante. Derselbe Wert steckt in den Overrides des Ersatzfonts. */
+  --sf-ascent: 0.848;
   /* Anteil des Zeilenkastens unterhalb der Grundlinie bei line-height: 1.
      Gemessen 0,152em. Der Hero-Claim hat keine Unterlängen, seine letzte
      sichtbare Pixelzeile ist also die Grundlinie — der Kasten reicht 14,6px
      darunter. Ohne diese Korrektur sähe der Abstand über dem Contact-Panel
      um genau diesen Betrag größer aus als der darunter.
 
-     0,1482 statt 0,152: der Schlusspunkt des Claims reicht 0,008em unter die
-     Grundlinie, das ist die tatsächlich letzte sichtbare Pixelzeile. */
-  --claim-descent: 0.1482;
+     Maßgeblich ist nicht die Grundlinie, sondern die letzte sichtbare
+     Pixelzeile: der Schlusspunkt (und jede Rundung) reicht --ink-overshoot
+     unter die Grundlinie. Es bleiben
+
+       1 − --sf-ascent − --ink-overshoot = 0,152 − 0,008 = 0,144 em
+
+     Der Wert stand vorher als 0,1482 hier — gerechnet mit 0,0038 statt der
+     gemessenen 0,008 em Überschuss. Der Unterschied ist 0,4px bei 96px Grad
+     und wanderte über --space-actions und die Verankerung des
+     Partnerships-Pop-ups in die Seite; als Formel kann er nicht mehr
+     auseinanderlaufen. */
+  --claim-descent: calc(1 - var(--sf-ascent) - var(--ink-overshoot));
   --logo-height: calc(var(--hero-size) * var(--cap-height));
   --logo-width: calc(var(--logo-height) * 308.7 / 37.55);
 
@@ -177,6 +316,163 @@
      sofort, deshalb rückt die Kette nach vorn. */
   --intro-base: 0.25s;
 
+  /* --- Abstand von „Formula 3 Driver." zur Umrandung der Schaltflächen ---
+     Gefordert ist, dass dieser Abstand genauso groß ist wie der von
+     „Formula 3 Driver." zur Hero-Zeile darüber. Gemessen wird dabei von
+     SICHTBARER Kante zu sichtbarer Kante — der Zeilenkasten trägt oben und
+     unten Luft, die nicht mitzählt, und der Rahmen ist niedriger als die
+     Reihe, in der er sitzt.
+
+     Oben (Hero-Zeile → Tagline):
+       Kastenrest unter der letzten sichtbaren Zeile des Claims
+         --hero-size × --claim-descent
+       + der Abstand der Kästen (1u)
+       + von der Kastenoberkante der Tagline bis zu ihrer Versalhöhe
+         --tagline-size × (Halbdurchschuss + --sf-ascent − --cap-height)
+
+     Unten (Tagline → Rahmen):
+       Kastenrest unter der Grundlinie der Tagline
+         --tagline-size × (Halbdurchschuss + --claim-descent)
+       + dieser Abstand
+       + der Einzug des Rahmens in der Reihe
+         (--icon-button-size − --action-frame-h) / 2
+
+     Gleichgesetzt fällt der Halbdurchschuss der Tagline auf beiden Seiten
+     heraus, es bleibt:
+
+       1u + hero × CD + tagline × (ascent − cap − CD) − Rahmeneinzug
+
+     1440 × 900: 30 + 14,23 + 0,33 − 18,44 = 26,12px. Der Wert darf auf sehr
+     flachen Fenstern negativ werden — dann steht der Rahmen näher an der
+     Tagline als die Reihe hoch ist, und weil der Rest der Reihe leer ist,
+     stößt dabei nichts zusammen. */
+  --space-actions: calc(var(--space-unit)
+                        + var(--hero-size) * var(--claim-descent)
+                        + var(--tagline-size)
+                          * (var(--sf-ascent) - var(--cap-height) - var(--claim-descent))
+                        - (var(--icon-button-size) - var(--action-frame-h)) / 2);
+
+  /* --- Sichtbare Kanten: Ink-Maße der Schrift --------------------------
+     Alles, was ab hier „oberster" oder „unterster Punkt" heißt, meint die
+     letzte gezeichnete Pixelzeile, nicht die Kante des Zeilenkastens. Die
+     drei fehlenden Maße sind in Saira gemessen (upem = 1000, canvas
+     actualBoundingBox):
+
+       Oberlänge von „l" / „f" / „d"        743  ->  0,743 em
+       Überschuss der Rundungen und des
+       Schlusspunkts unter der Grundlinie     8  ->  0,008 em
+
+     --cap-height (0,688) bleibt daneben stehen: Versalien ohne Oberlänge
+     („I" in „Impressum", „N" im Claim) enden dort. Maßgeblich ist immer der
+     höchste bzw. tiefste Buchstabe der jeweiligen Zeile:
+
+       „Formula 3 Driver."  oben Oberlänge („l"),  unten Überschuss („.")
+       „Follow Lenzi"       oben Oberlänge („ll"), unten Überschuss („o")
+       „Impressum"          oben Versalhöhe („I")                          */
+  --ink-ascender: 0.743;
+  --ink-overshoot: 0.008;
+
+  /* Zeilen im Grad der Tagline (--tagline-size, --lh-tight): Weg von der
+     Kastenkante zur sichtbaren Kante. Gilt für „Formula 3 Driver." und für
+     „Follow Lenzi" — gleicher Grad, gleiche Zeilenhöhe, und beide haben
+     oben eine Oberlänge und unten nur den Überschuss. */
+  --subhead-ink-top: calc(var(--tagline-size)
+                          * ((var(--lh-tight) - 1) / 2
+                             + var(--sf-ascent) - var(--ink-ascender)));
+  --subhead-ink-bottom: calc(var(--tagline-size)
+                             * ((var(--lh-tight) - 1) / 2
+                                + 1 - var(--sf-ascent) - var(--ink-overshoot)));
+
+  /* Fußnotenzeile: von der Kastenoberkante zur Versalhöhe des „I" von
+     „Impressum". */
+  --footer-ink-top: calc(var(--footer-size)
+                         * ((var(--lh-ui) - 1) / 2
+                            + var(--sf-ascent) - var(--cap-height)));
+
+  /* Die drei Social-Icons stehen in quadratischen Masken (640 × 640), die
+     Zeichnung darin füllt sie nicht aus. Höchster und tiefster Punkt der
+     Reihe gehören beide dem Facebook-Kreis — er ist von allen drei der
+     größte. Aus der Datei gerechnet:
+
+       Facebook   y 64,00 .. 574,10   ->  oben 10,00 %, unten 10,30 %
+       Instagram  y 95,82 .. 543,98   ->  oben 14,97 %, unten 15,00 %
+       YouTube    y 128,00 .. 512,00  ->  oben 20,00 %, unten 20,00 %       */
+  --social-ink-top: calc(var(--icon-glyph-length) * 0.1);
+  --social-ink-bottom: calc(var(--icon-glyph-length) * 0.10297);
+
+  /* Einzug des Rahmens in der Icon-Reihe. Die Reihe ist
+     --icon-button-size hoch, der gezeichnete Rahmen nur --action-frame-h und
+     sitzt mittig darin — oberster und unterster Punkt der drei
+     Schaltflächen liegen also um diesen Betrag innerhalb der Reihe. */
+  --action-frame-inset: calc((var(--icon-button-size) - var(--action-frame-h)) / 2);
+
+  /* Versatz der Wortmarke aus der Mitte ihres Slots. Zwei Nutzer: das Logo
+     selbst und das Partnerships-Pop-up, dessen Unterkante sich an der
+     Oberkante des Logos ausrichtet. Herleitung bei .hero__logo. */
+  --logo-shift: calc((var(--subhead-ink-top) - var(--action-frame-inset)) / 2);
+
+  /* --- DAS Referenzmaß der unteren Seitenhälfte -------------------------
+     Abstand vom untersten sichtbaren Punkt des Hero-Claims (Schlusspunkt
+     von „Nicolas Lenzi Loeffler.") zum obersten sichtbaren Punkt von
+     „Formula 3 Driver." (Oberlänge des „l"). Von Ink-Kante zu Ink-Kante,
+     nicht von Kasten zu Kasten:
+
+       Kastenrest unter dem Claim      --hero-size × --claim-descent
+       + Abstand der Kästen            1u
+       + Weg zur Oberlänge der Tagline --subhead-ink-top
+
+     1440 × 900: 14,23 + 30 + 5,74 = 49,97px
+
+     Dieses Maß gilt an drei weiteren Stellen (Vorgabe):
+       „Follow Lenzi"  -> Social-Icons        (--space-follow-icons)
+       Social-Icons    -> „Impressum"         (--space-icons-footer)
+       und halbiert als Luft über und unter dem Partnerships-Pop-up.        */
+  --space-claim-tagline: calc(var(--hero-size) * var(--claim-descent)
+                              + var(--space-unit)
+                              + var(--subhead-ink-top));
+
+  /* „Follow Lenzi" (Unterkante der Rundungen) -> oberster Punkt der
+     Social-Icons. Gemessen wird von Ink zu Ink, gesetzt wird ein
+     Kastenabstand — also beide Einzüge herausrechnen.
+     1440 × 900: 49,97 − 6,83 − 2,96 = 40,18px */
+  --space-follow-icons: calc(var(--space-claim-tagline)
+                             - var(--subhead-ink-bottom)
+                             - var(--social-ink-top));
+
+  /* Unterster Punkt der Social-Icons -> Versalhöhe von „Impressum".
+     1440 × 900: 49,97 − 3,04 − 5,04 = 41,88px */
+  --space-icons-footer: calc(var(--space-claim-tagline)
+                             - var(--social-ink-bottom)
+                             - var(--footer-ink-top));
+
+  /* --- Seitliche Bezugskanten für das Partnerships-Pop-up ---------------
+     Halbe Breite der Icon-Reihe bis zu ihrem äußersten SICHTBAREN Punkt.
+     Die drei Rahmen lehnen nach vorn, ihre Fläche ragt deshalb je Seite um
+     eine halbe Rahmenhöhe (waagerecht: × tan 45,10°) über den Kasten hinaus.
+     Links ist der äußerste Punkt die UNTERE Ecke des „Profile"-Rahmens,
+     rechts die OBERE Ecke des „Partnerships"-Rahmens — genau die beiden
+     Punkte, die die Vorgabe nennt. Beide liegen gleich weit von der
+     Mittelachse, die Reihe ist symmetrisch.
+
+       1440 × 900: 1,5 × 155,42 + 28 + 15,06 = 276,19px                    */
+  --actions-half: calc(1.5 * var(--action-width)
+                       + var(--icon-gap)
+                       + 0.5 * var(--action-frame-h) * var(--slant-tan));
+
+  /* Mittelachse -> sichtbare Außenkanten des Hero-Claims. Nicht die Kanten
+     des Zeilenkastens: links beginnt das „N" erst nach seiner Vorbreite,
+     rechts endet der Schlusspunkt vor seiner Nachbreite. Der Claim steht
+     dadurch minimal unsymmetrisch zur Mittelachse — deshalb zwei Werte.
+
+     Gemessen an der gesetzten Zeile („Nicolas Lenzi Loeffler.", Saira
+     Regular, --tracking-display) und auf --hero-size normiert; die Zeile
+     skaliert linear mit dem Grad, die Verhältnisse sind also konstant:
+
+       Grad 96px:  Mitte -> linke  Ink-Kante des „N"   440,77px
+                   Mitte -> rechte Ink-Kante des „."   447,05px            */
+  --claim-ink-left: calc(var(--hero-size) * 4.5913);
+  --claim-ink-right: calc(var(--hero-size) * 4.65676);
+
   /* Seitenrahmen */
   --page-pad-y: clamp(1.5rem, 5vw, 3rem);
   --page-pad-x: clamp(1.25rem, 5vw, 2.5rem);
@@ -190,15 +486,22 @@
 
   /* Höhe: das Overlay soll die Social-Icons vollständig verdecken, die
      Fußnote aber sichtbar lassen. Es ist mittig im Viewport, oben und unten
-     bleibt also automatisch derselbe Rand — dieser Rand ist so bemessen,
-     dass die Unterkante des Overlays genau mittig zwischen der Unterkante
-     der Social-Icons und der Oberkante der Fußnote liegt:
+     bleibt also automatisch derselbe Rand:
 
        Rand = Fußnoten-Abstand + Fußnotenzeile + 1u
        1440×900 → 14,4 + 19,6 + 30 = 64px
 
-     Damit deckt es die Icons um 1u ab und lässt der Fußnote 1u Luft. */
-  --footer-line: calc(14px * 1.4);   /* Schriftgröße × Zeilenhöhe der Fußnote */
+     Das 1u stand ursprünglich für die halbe Strecke zwischen Social-Icons
+     und Fußnote (damals 2u) — die Unterkante des Overlays lag damit genau
+     mittig darin. Diese Strecke ist inzwischen --space-icons-footer
+     (41,4px bei 1440 × 900, siehe .social), der Rand hier ist bewusst
+     unverändert geblieben: das Overlay deckt die Icons weiter vollständig
+     ab (11,5px Überstand) und lässt der Fußnote 30px Luft. */
+  /* Schriftgrad der Fußnote. Steht als Token, weil drei Stellen ihn teilen:
+     die Fußnote selbst, ihre Zeilenhöhe für die Overlay-Rechnung und der Weg
+     von der Kastenkante zur Versalhöhe von „Impressum". */
+  --footer-size: 14px;
+  --footer-line: calc(var(--footer-size) * var(--lh-ui)); /* Grad × Zeilenhöhe */
   --about-inset: calc(var(--footer-inset) + var(--footer-line) + var(--space-unit));
   --about-height: calc(100vh - 2 * var(--about-inset));
 
@@ -217,6 +520,41 @@
      Spaltenbreite ab — Bild und Bildunterschrift sind dadurch immer gleich
      breit (siehe .story--split .story__figure). */
   --split-media-max-h: calc(var(--about-height) - 2 * var(--about-frame));
+
+  /* --- Halbierte Kapitel ------------------------------------------------
+     Textfläche des Pop-ups, davon die halbe Breite minus Spaltenabstand für
+     den Bildkasten, und daraus über 4:5 seine Höhe. Der Countdown übernimmt
+     genau diese Höhe, damit seine Kachelreihe auf der Unterkante des Bildes
+     endet und nicht auf der Unterkante seiner Bildunterschrift. */
+  --split-gap: clamp(1.25rem, 2.5vw, 2.25rem);
+  --content-w: calc(var(--about-width) - 2 * var(--about-frame));
+  --half-figure-w: min(calc(var(--content-w) / 2 - var(--split-gap)),
+                       calc(var(--split-media-max-h) * 4 / 5));
+  --half-media-h: calc(var(--half-figure-w) * 5 / 4);
+
+  /* --- Breite des Blocks unter „Standings & Results" -------------------
+     Tabellenstand und Rennliste enden rechts genau auf der rechten Kante des
+     Helmbildes im Kapitel darüber und beginnen an derselben linken Kante.
+     Das Helmbild ist --half-figure-w breit, also ist es auch dieser Block.
+
+     Beide teilen ihn in DREI GLEICHE Spalten: Strecke | Austria Formel Cup |
+     TopJet F2000. Die mittlere liegt damit zwangsläufig mittig — ihr Titel
+     „Austria Formel Cup | AF3-T" steht genau über der Mitte des Helmbildes.
+     Die dritte endet auf dessen rechter Kante, dort sitzt die Punktespalte. */
+  --results-w: var(--half-figure-w);
+
+  /* EIN Schriftgrad für den ganzen Block — Tabellenstand, Rennliste und
+     Quellenangabe. Gefordert ist der Grad des Fließtextes; er steht als
+     Obergrenze, darunter entscheidet die Spaltengeometrie (Rechnung bei
+     .results__col-*): die Tabelle steht in drei gleichen Dritteln, und in
+     ein Drittel muss der längere der beiden Serientitel passen —
+     „Austria Formel Cup · AF3-T", im Satz gemessene 12,181em:
+
+       12,181em <= --results-w / 3   ->   Grad <= --results-w / 36,54
+
+     Gerundet auf /37,5, damit links und rechts des Titels noch etwas Luft
+     im Drittel bleibt. */
+  --results-font: min(var(--text-body-compact), calc(var(--results-w) / 37.5));
 
   --panel-radius: 18px;
 }
@@ -400,8 +738,33 @@ body.is-preload *::after {
                   max(var(--page-pad-x), env(safe-area-inset-right));
 }
 
+/* Startseite: CDF-Dunkelblau als Grund, darauf das Hintergrundfoto.
+
+   Das Foto ist nicht roh eingesetzt, sondern in der Datei schon auf den
+   Grund heruntergerechnet: entsättigt, weichgezeichnet und in eine
+   Duotone-Rampe von #071523 nach #102B41 gelegt — beide Enden liegen knapp
+   unter und knapp über #0A1F33. Der hellste Punkt der Fläche steht damit auf
+   4,17:1 gegen CDF-Orange (reiner Grund: 4,80:1), und weil Hero-Zeile,
+   Tagline und „Follow Lenzi" grosse Schrift sind, bleibt der Abstand zur
+   AA-Schwelle von 3:1 überall gross. Das untere Drittel der Datei läuft auf
+   reinem #0A1F33 aus: dort stehen Social-Icons und Fussnote, die einzigen
+   Elemente in 14 px, und die behalten ihre 4,80:1 unverändert.
+
+   Deshalb braucht die Seite hier keinen zusätzlichen Abdunkler und keine
+   Änderung an Hero-Zeile, Wortmarke oder Icons — die Icon-Buttons tragen
+   ohnehin eine deckende Fläche in --color-dark und stehen unberührt vor dem
+   Bild. Aufbereitung siehe assets/images/bg/README.md.
+
+   Zwei background-image-Zeilen: image-set() wählt AVIF (8 KB) und fällt auf
+   JPEG zurück; Browser ohne image-set() nehmen die erste Zeile. */
 .page--home {
   background-color: var(--color-dark);
+  background-image: url("/assets/images/bg/home.jpg");
+  background-image: image-set(url("/assets/images/bg/home.avif") type("image/avif"),
+                              url("/assets/images/bg/home.jpg") type("image/jpeg"));
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-size: cover;
   color: var(--color-orange);
 }
 
@@ -445,10 +808,11 @@ body.is-preload *::after {
    wachsen mit demselben Faktor, die Hero-Zeile steht dadurch genauso hoch
    wie bei justify-content: center.
 
-   Die untere Fläche reicht exakt von der Unterkante der Icon-Reihe bis zur
-   Oberkante von „Follow Lenzi" (der Hero endet dort, wo der Social-Block
-   beginnt). Das mittig darin liegende Logo sitzt damit genau in der Mitte
-   zwischen beiden. */
+   Die untere Fläche reicht von der Unterkante der Icon-REIHE bis zur
+   Oberkante des Kastens von „Follow Lenzi" (der Hero endet dort, wo der
+   Social-Block beginnt). Beides sind Kastenkanten, nicht die sichtbaren
+   Kanten — das Logo liegt deshalb nicht mittig im Slot, sondern um
+   --logo-shift versetzt (siehe .hero__logo). */
 .hero::before {
   content: "";
   flex: 1 1 0;
@@ -468,7 +832,27 @@ body.is-preload *::after {
 /* Freigestellte Wortmarke, so hoch wie der Hero-Claim.
    Die dunkelblauen Flächen der Wortmarke laufen in der Datei im CDF-Hellgrau
    — auf dunkelblauem Grund wären sie sonst unsichtbar. */
+/* Gefordert: der Abstand vom obersten Punkt des Logos zum untersten Punkt
+   der drei Schaltflächen ist genauso groß wie der vom untersten Punkt des
+   Logos zum obersten Punkt von „Follow Lenzi". Beide Enden des Slots sind
+   Kastenkanten, die sichtbaren Kanten liegen jeweils weiter innen:
+
+     oben   der gezeichnete Rahmen endet --action-frame-inset über der
+            Unterkante der Icon-Reihe (22,19px bei 1440 × 900)
+     unten  die Oberlänge des „ll" von „Follow Lenzi" beginnt erst
+            --subhead-ink-top unter der Kastenoberkante (5,74px)
+
+   Ein mittig sitzendes Logo hätte damit oben 22,19px mehr Luft als gefordert
+   und unten 5,74px zu wenig. Der Ausgleich ist die halbe Differenz:
+
+     --logo-shift = (--subhead-ink-top − --action-frame-inset) / 2
+     1440 × 900: (5,74 − 22,19) / 2 = −8,22px  (das Logo rückt nach oben)
+
+   Gesetzt wird der doppelte Wert als margin-top: bei align-items: center
+   verteilt der Flexbox-Algorithmus den Rest um den MARGIN-Kasten, ein
+   oberer Rand verschiebt das Element deshalb nur um seine Hälfte. */
 .hero__logo {
+  margin-top: calc(2 * var(--logo-shift));
   width: var(--logo-width);
   max-width: 100%;
   /* Notbremse für sehr flache Fenster: lieber ein kleineres Logo als eines,
@@ -487,7 +871,7 @@ body.is-preload *::after {
   gap: 1rem;
   width: 100%;
   margin-top: clamp(1.5rem, 4vh, 2.5rem);
-  font-size: 14px;
+  font-size: var(--footer-size);
   font-weight: var(--weight-regular);
   line-height: var(--lh-ui);
 }
@@ -526,20 +910,30 @@ body.is-preload *::after {
 }
 
 /* Social — „Follow Lenzi" plus die drei Profil-Icons, mittig zentriert über
-   der Fußnote. Abstände: 1u zwischen Zeile und Icons, 2u von der Unterkante
-   der Icons zur Oberkante der Fußnotenzeile. */
+   der Fußnote.
+
+   Beide Abstände sind nicht mehr 1u und 2u, sondern das Referenzmaß der
+   unteren Seitenhälfte: von Ink-Kante zu Ink-Kante genauso groß wie der
+   Abstand zwischen dem Schlusspunkt von „Nicolas Lenzi Loeffler." und der
+   Oberlänge von „Formula 3 Driver." (Rechnung bei --space-claim-tagline).
+
+     unterster Punkt der Icons -> Versalhöhe „Impressum"  --space-claim-tagline
+     Unterkante „Follow Lenzi" -> oberster Punkt der Icons --space-claim-tagline
+
+   Gesetzt werden Kastenabstände, gemessen wird Ink — die Einzüge stecken
+   deshalb in --space-icons-footer und --space-follow-icons. */
 .social {
   display: flex;
   flex-direction: column;
   align-items: center;
   width: 100%;
-  margin-bottom: calc(2 * var(--space-unit));
+  margin-bottom: var(--space-icons-footer);
   text-align: center;
 }
 
 /* Gleiche Größe, Laufweite und Stärke wie „Formula 3 Driver". */
 .social__label {
-  margin: 0 0 var(--space-unit);
+  margin: 0 0 var(--space-follow-icons);
   font-size: var(--tagline-size);
   font-weight: var(--weight-regular);
   line-height: var(--lh-tight);
@@ -593,9 +987,10 @@ body.is-preload *::after {
   align-items: center;
   justify-content: center;
   gap: var(--icon-gap);
-  /* 1u — genau so weit unter der Tagline wie die Tagline unter der
-     Hero-Zeile. Gemessen bis zur Oberkante der Umkreisung. */
-  margin-top: var(--space-unit);
+  /* So weit unter der Tagline, dass der Abstand von der Tagline zur
+     Umrandung genauso groß ist wie der von der Tagline zur Hero-Zeile —
+     Rechnung bei --space-actions. */
+  margin-top: var(--space-actions);
 }
 
 /* Wrapper hält Button + zugehöriges Panel zusammen (Positionierungs-Anker,
@@ -610,45 +1005,166 @@ body.is-preload *::after {
   display: flex;
 }
 
-/* Gelbe Fläche, schwarze Umrandung, schwarzes Glyph.
-   Im Hover kehrt sich das um: schwarze Fläche, und die Symbolfläche nimmt
-   die Akzentfarbe des jeweiligen Icons an (siehe .action--*). */
+/* Schräger Rahmen mit Wortbeschriftung.
+
+   Die Schaltfläche selbst ist unsichtbar und trägt nur die Beschriftung; der
+   Rahmen ist ein eigenes Kästchen (::before). Nur dieses wird geschert — die
+   Schrift bleibt dadurch aufrecht und unverzerrt stehen. Eine gescherte
+   Schaltfläche mit gegengescherter Schrift käme aufs selbe Bild heraus,
+   würde aber die Schrift zweimal durch eine Matrix schicken und sichtbar
+   verschmieren.
+
+   Die Höhe der Schaltfläche bleibt --icon-button-size: das ist zugleich das
+   alte Maß der Reihe (Hero-Zeile und Wortmarke bleiben stehen) und ein
+   Fingerziel von 64–74px. Der Rahmen ist niedriger und sitzt mittig darin. */
 .action {
-  --action-hover-glyph: var(--color-dark);
+  position: relative;
   display: grid;
   place-items: center;
-  width: var(--icon-button-size);
+  width: var(--action-width);
   height: var(--icon-button-size);
   padding: 0;
-  border: var(--icon-border) solid var(--color-orange);
-  border-radius: 50%;
-  background-color: var(--color-dark);
+  border: 0;
+  background: none;
   color: var(--color-orange);
+  font-family: inherit;
+  font-size: var(--action-label-size);
+  /* Regular, wie die Tagline direkt darüber: Beschriftung und „Formula 3
+     Driver." tragen damit denselben Grad UND dieselbe Stärke. Fett stünde auf
+     der Startseite sonst als einzige Stelle — die Seite hält es den Titeln
+     und Kapitelüberschriften vor. */
+  font-weight: var(--weight-regular);
+  line-height: var(--lh-ui);
+  letter-spacing: var(--tracking-small);
+  text-transform: uppercase;
   cursor: pointer;
   text-decoration: none;
-  transition: transform 180ms var(--ease-soft),
-              background-color 180ms var(--ease-soft),
-              color 180ms var(--ease-soft);
+  transition: transform 180ms var(--ease-soft);
+}
+
+/* --- Der Rahmen: eine gezeichnete Kontur, keine gescherte Umrandung ----
+   Bis hierher war der Rahmen ein Kästchen mit CSS-Umrandung, das per
+   skewX() geschert wurde. Das erzeugt zwangsläufig UNTERSCHIEDLICH DICKE
+   Linien, und zwar messbar:
+
+     · Ober- und Unterkante bleiben waagerecht, ihre Dicke bleibt 1,0×.
+     · Die beiden 45°-Kanten entstehen aus den senkrechten Umrandungen. Deren
+       waagerechte Breite überlebt die Scherung, senkrecht zur Kante gemessen
+       bleiben davon aber nur cos(45,1°) = 0,71×.
+     · Im gerundeten Eck dreht sich die Tangente durch die Richtung, die die
+       Scherung staucht — dort läuft die Linie auf 1,41× auf.
+
+   Zwischen dünnster und dickster Stelle liegt damit ein Faktor 2. Genau das
+   war auf den Schaltflächen zu sehen. Reparieren lässt sich das in CSS nicht:
+   eine Scherung ist nicht winkeltreu, ein Ring gleicher Dicke kann unter ihr
+   gar nicht entstehen.
+
+   Deshalb wird die Kontur gerechnet und als SVG-Pfad gezeichnet (main.js,
+   Abschnitt „Umrandungen"). Ein Strich auf einem Pfad ist überall gleich
+   dick, unabhängig von der Richtung. Zwei Dinge werden dadurch sogar
+   originalgetreuer als vorher:
+
+     · Der Winkel ist exakt 45,10°, in jeder Kastengröße — vorher hätte jede
+       Abweichung des Seitenverhältnisses ihn verzogen.
+     · Die beiden stumpfen Ecken tragen einen echten KREISBOGEN mit der Sehne
+       des Originals (43,8 % der Höhe). Unter der Scherung war nur eine
+       Ellipse möglich; der Kommentar bei --action-frame-chord hielt das als
+       Einschränkung fest, sie ist damit aufgehoben.
+
+   Die deckende Fläche in --color-dark bleibt: der Grund der Startseite ist
+   seit dem Hintergrundfoto nicht mehr überall reines #0A1F33 — hinter der
+   Icon-Reihe steht das Bild bei bis zu #102C44, und CDF-Orange käme darauf
+   nur auf 4,11:1. Mit der Fläche bleiben es die 4,80:1 des reinen Grundes. */
+/* Breite und Höhe stehen ausdrücklich, nicht über left/right bzw. top/bottom:
+   ein <svg> ohne viewBox ist ein ersetztes Element ohne eigenes
+   Seitenverhältnis. Bei width/height: auto bekäme es die Ersatzgröße
+   300 × 150px, und die gegenüberliegende Kante würde ignoriert.
+
+   overflow: visible, damit die Gehrung der beiden SPITZEN Ecken vollständig
+   gezeichnet wird. Sie reicht genau bis auf die Kastenkante — der Pfad liegt
+   um die halbe Strichstärke senkrecht nach innen, und an einer 45°-Spitze
+   holt die Gehrung genau diesen Versatz wieder heraus. */
+.frame {
+  position: absolute;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.frame__shape {
+  fill: none;
+  stroke-width: var(--line-w);
+}
+
+/* Der Kasten des Rahmens ist links und rechts um den halben 45°-Versatz
+   breiter als die Schaltfläche: die gescherte Fläche ragte genau so weit über
+   ihren Kasten hinaus, und dieses Bild bleibt unverändert. */
+.action > .frame {
+  top: calc((var(--icon-button-size) - var(--action-frame-h)) / 2);
+  left: calc(-0.5 * var(--action-frame-h) * var(--slant-tan));
+  width: calc(100% + var(--action-frame-h) * var(--slant-tan));
+  height: var(--action-frame-h);
+  opacity: 0.68;
+  transition: opacity 180ms var(--ease-soft);
+}
+
+.action > .frame .frame__shape {
+  fill: var(--color-dark);
+  stroke: var(--color-orange);
+}
+
+/* Rückfallebene ohne JavaScript: dort bleibt es bei der gescherten
+   Umrandung — lieber eine ungleichmäßige Linie als keine. Mit JavaScript
+   zeichnet .frame darüber, das Kästchen wird dann abgeschaltet. */
+.action::before {
+  content: "";
+  position: absolute;
+  inset: calc((var(--icon-button-size) - var(--action-frame-h)) / 2) 0;
+  border: var(--line-w) solid var(--color-orange);
+  border-radius: var(--action-frame-radius) 0 var(--action-frame-radius) 0;
+  background-color: var(--color-dark);
+  transform: skewX(var(--slant));
+  opacity: 0.68;
+  transition: opacity 180ms var(--ease-soft);
+}
+
+.js .action::before,
+.js .countdown__tile::before {
+  display: none;
+}
+
+/* Die Beschriftung liegt über dem Rahmen und wird nicht geschert. */
+.action__label {
+  position: relative;
+}
+
+/* Rückmeldung bleibt bewusst klein: der Rahmen wird voll deckend, die Fläche
+   rückt 2px in Neigungsrichtung — nach vorn. Keine Skalierung, keine
+   Farbumkehr, keine Geometrieänderung. */
+.action:focus-visible::before,
+.action[aria-expanded="true"]::before,
+.action:focus-visible > .frame,
+.action[aria-expanded="true"] > .frame {
+  opacity: 1;
 }
 
 .action:focus-visible,
 .action[aria-expanded="true"] {
-  transform: translateY(-2px);
-  background-color: var(--color-orange);
-  color: var(--color-dark);
+  transform: translateX(2px);
 }
 
 /* Nur mit echtem Zeiger. Auf Touch-Geräten bliebe :hover nach dem Antippen
    hängen, bis woanders hingetippt wird. */
 @media (hover: hover) and (pointer: fine) {
+  .action:hover::before,
+  .action:hover > .frame {
+    opacity: 1;
+  }
+
   .action:hover {
-    transform: translateY(-2px);
-    background-color: var(--color-orange);
-    color: var(--color-dark);
+    transform: translateX(2px);
   }
 }
 
-/* Akzentfarbe je Icon — greift über currentColor auf die Maskenfläche. */
 .action:focus-visible {
   outline: 2px solid var(--color-orange);
   outline-offset: 3px;
@@ -691,6 +1207,11 @@ body.is-preload *::after {
 .icon--facebook {
   -webkit-mask-image: url("/assets/icons/facebook-brands-solid-full.svg");
   mask-image: url("/assets/icons/facebook-brands-solid-full.svg");
+}
+
+.icon--linkedin {
+  -webkit-mask-image: url("/assets/icons/linkedin-in-brands-solid-full_new_.svg");
+  mask-image: url("/assets/icons/linkedin-in-brands-solid-full_new_.svg");
 }
 
 .icon--envelope {
@@ -757,50 +1278,91 @@ body.is-preload *::after {
 }
 
 /* Contact-Panel — liegt über Tagline und Icon-Reihe, aber nie über der
-   Wortmarke. Es steht deshalb im Logo-Slot und spannt sich zwischen zwei
-   Kanten auf:
+   Wortmarke. Es steht deshalb im Logo-Slot und ist an allen vier Kanten
+   fest verankert; height und width bleiben auto und ergeben sich aus den
+   vier Offsets. Alle vier Kanten sind SICHTBARE Kanten des Pop-ups, es
+   verteilt also nichts mehr über auto-Ränder.
 
-     top     Unterkante der Hero-Zeile. Vom oberen Rand des Slots aus sind
-             das die Icon-Reihe, 1u, die Taglinezeile und noch einmal 1u —
-             alles bekannte Längen, deshalb als negativer Wert exakt
-             berechenbar.
-     bottom  Oberkante der Wortmarke. Sie liegt mittig im Slot, ihre
-             Oberkante also eine halbe Logohöhe über der Slotmitte.
+   Senkrecht: das Pop-up hält oben und unten den GLEICHEN Abstand, ein
+   Viertel der Referenzstrecke --space-claim-tagline.
 
-   height bleibt auto, die beiden auto-Ränder teilen den Rest gleichmäßig
-   auf: der Abstand nach oben zur Hero-Zeile ist damit exakt so groß wie der
-   nach unten zur Wortmarke. */
+     1440 × 900: Streifen 237,0px, Luft je 12,4px, Kasten 212,2px
+
+     top     --space-claim-tagline / 4 unter dem Schlusspunkt von
+             „Nicolas Lenzi Loeffler.".
+     bottom  --space-claim-tagline / 4 über der Oberkante der Wortmarke.
+
+   Waagerecht (Vorgabe): jede Kante liegt mittig zwischen der Icon-Reihe und
+   dem Hero-Claim.
+
+     left    auf der linken Ink-Kante des „N" von „Nicolas ...".
+     right   auf der rechten Ink-Kante des Schlusspunkts von „... Loeffler.".
+
+   Das Pop-up ist damit genau so breit wie der Hero-Name darüber. Weil der
+   Claim nicht exakt symmetrisch zur Mittelachse steht (Vorbreite des „N"
+   9,58px, Nachbreite des Punkts 3,26px bei 96px Grad), sind die beiden
+   Offsets unterschiedlich groß — das Pop-up steht dadurch um 3,1px rechts
+   der Mittelachse. Deshalb left UND right statt left: 50 % mit
+   translateX(-50 %).
+
+     1440 × 900: 279,24px .. 1167,05px  (887,81px breit, 212,2px hoch)     */
 .panel--contact {
-  top: calc(-1 * (var(--icon-button-size)
-                  + 2 * var(--space-unit)
-                  + var(--tagline-line)
-                  + var(--hero-size) * var(--claim-descent)));
-  bottom: calc(50% + var(--logo-height) / 2);
-  left: 50%;
-  width: min(27.6rem, calc(100vw - 2.5rem));   /* 23rem × 1,2 */
-  /* Senkrecht +20 %: gemessene 240,03px Panelhöhe × 1,2 = 288,04px. Bei
-     441,6px Breite braucht der Text 160,78px, die Differenz verteilt sich zu
-     gleichen Teilen auf oben und unten — 63,63px = 3,977rem.
+  /* Von der Oberkante des Logo-Slots aufwärts zum Schlusspunkt des Claims:
+     die Icon-Reihe, ihr Abstand zur Tagline (--space-actions), die
+     Taglinezeile, deren Abstand zur Hero-Zeile (1u) und der Kastenrest unter
+     dem Claim. Davon die halbe Referenzstrecke wieder nach unten. */
+  top: calc(var(--space-claim-tagline) / 4
+            - (var(--icon-button-size)
+               + var(--space-actions)
+               + var(--space-unit)
+               + var(--tagline-line)
+               + var(--hero-size) * var(--claim-descent)));
+  /* Oberkante der Wortmarke: eine halbe Logohöhe über der Slotmitte, um
+     --logo-shift versetzt (siehe .hero__logo). Davon die halbe
+     Referenzstrecke nach oben. */
+  bottom: calc(50% + var(--logo-height) / 2
+               - var(--logo-shift)
+               + var(--space-claim-tagline) / 4);
+  /* max(0px, …) ist eine Notbremse für schmale Fenster: dort bricht der
+     Claim in zwei Zeilen, seine Ink-Kanten liegen dann weiter außen als das
+     Fenster breit ist. Das Pop-up geht in diesem Fall bis an die
+     Seitenränder — wie vorher über calc(100vw − 2.5rem). */
+  left: max(0px, calc(50% - var(--claim-ink-left)));
+  right: max(0px, calc(50% - var(--claim-ink-right)));
+  /* Beide Achsen kommen aus den Offsets. Die Basis .panel setzt width:
+     max-content und deckelt max-width bei 520px — beides muss weg. */
+  width: auto;
+  max-width: none;
+  height: auto;
+  /* Innenabstand: der Kasten steht fest, das Padding rückt nur den Text von
+     den Kanten ab. Waagerecht bleiben es die 28px der Basis .panel, senkrecht
+     rund die Hälfte davon — der Kasten ist deutlich breiter als hoch, ein
+     gleich großer Rand oben und unten liesse ihn gedrungen wirken. Der clamp
+     hält den Rand auf kurzen Fenstern klein, wo der Kasten selbst flacher
+     wird. */
+  padding-block: clamp(0.35rem, 0.8vh, 0.7rem);
+  /* Der Grad hängt an der Fensterhöhe, nicht an einem festen Wert.
 
-     Der clamp deckelt das nach unten: das Panel steht zwischen Hero-Zeile
-     und Wortmarke, und dieser Streifen ist ungefähr Fensterhöhe/4 + 11px
-     hoch. Ist er zu kurz für die vollen +20 %, wächst das Panel nur so weit,
-     dass oben und unten je 10px Luft bleiben — statt über Claim und
-     Wortmarke zu laufen. Ab rund 1200px Fensterhöhe greifen die vollen
-     +20 %. */
-  padding-block: clamp(0.75rem, calc(12.5vh - 84.89px), 3.977rem);
-  /* Ohne fit-content wäre height: auto bei gesetztem top UND bottom keine
-     Inhaltshöhe, sondern die volle Bandhöhe — die auto-Ränder hätten dann
-     nichts mehr zu verteilen und das Panel klebte an beiden Kanten. */
-  height: fit-content;
-  margin-block: auto;
-  font-size: 15px;
-  /* Nur Opazität animieren — jede Bewegung würde die Ausrichtung stören. */
-  transform: translateX(-50%);
+     EIN Grad für das ganze Pop-up, und zwar der der Pop-up-Fließtexte in
+     Profile und Racing (.story__body: --text-body-compact). Vorher hing der
+     Grad der beiden Absätze an der Fensterhöhe und lag damit unter dem der
+     Kontaktzeilen — im selben Kasten standen zwei Größen.
+
+     Der Kasten wächst dafür in der Höhe mit (siehe bottom), statt den Text
+     zu verkleinern. */
+  font-size: var(--text-body-compact);
+  /* Notausgang, keine Gestaltung: sollte der Text den festen Kasten doch
+     sprengen, scrollt er DARIN, statt über Claim und Wortmarke zu laufen.
+     overscroll-behavior hält den Zug im Pop-up. */
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Nur Opazität animieren — jede Bewegung würde die Ausrichtung stören.
+     Ohne left: 50 % gibt es auch kein translateX mehr zu halten. */
+  transform: none;
 }
 
 .panel--contact.is-open {
-  transform: translateX(-50%);
+  transform: none;
 }
 
 /* Auf kurzen Schirmen wird der Streifen zwischen Hero-Zeile und Wortmarke
@@ -809,10 +1371,10 @@ body.is-preload *::after {
    nach oben und unten bleiben so auf jedem Gerät erhalten. */
 @media (max-height: 700px) {
   .panel--contact {
-    /* Nur waagerecht und in der Schriftgröße kürzen — padding-block regelt
-       oben der clamp, der sich am verfügbaren Streifen orientiert. */
+    /* Nur waagerecht kürzen. Den Grad regelt der clamp oben — er hängt
+       selbst an der Fensterhöhe und liegt hier bereits unter 12px; ein Pin
+       an dieser Stelle würde ihn nur wieder anheben. */
     padding-inline: 1.15rem;
-    font-size: 12px;
   }
 
   .contact__line + .contact__line {
@@ -823,8 +1385,15 @@ body.is-preload *::after {
 /* Einleitungsabsatz und Kontaktzeilen. Über .panel--contact geschrieben,
    weil .panel p weiter oben margin: 0 setzt. Beide auf derselben Zeilenhöhe
    — vorher liefen sie im selben Kasten auf 1,55 und 1,5 auseinander. */
+/* Absatz- und Zeilenabstand zurückgenommen: die fünfte Zeile
+   (Ansprechpartner) braucht den Platz, und der Streifen zwischen Hero-Zeile
+   und Wortmarke gibt keinen her. 0,7rem zwischen den Absätzen, 0,1rem
+   zwischen den drei Kontaktzeilen — die lesen sich dadurch als ein Block,
+   die beiden Absätze darüber weiter als Prosa. */
+/* Absatzabstand knapp gehalten: der Kasten steht fest, und mit der
+   Überleitungszeile stehen darin fünf Textblöcke statt vier. */
 .panel--contact .contact__lead {
-  margin-bottom: 1.1rem;
+  margin-bottom: 0.4rem;
   line-height: var(--lh-read);
 }
 
@@ -832,8 +1401,83 @@ body.is-preload *::after {
   line-height: var(--lh-read);
 }
 
+/* Die Überleitung und die Zeile des Ansprechpartners stehen fett, die
+   Kontaktwege darunter im normalen Schnitt. Grad, Zeilenhöhe und Farbe
+   bleiben unverändert — die Gliederung trägt allein die Strichstärke der
+   Schrift, keine zweite Größe und keine zweite Farbe. */
+.panel--contact .contact__line--strong {
+  font-weight: var(--weight-bold);
+}
+
 .panel--contact .contact__line + .contact__line {
-  margin-top: 0.2rem;
+  margin-top: 0.1rem;
+}
+
+/* --- LinkedIn-Zeichen in der Zeile des Ansprechpartners ----------------
+   Es steht inline hinter „Commercial Partnerships" und gehört damit sichtbar
+   zu dieser Zeile — kein margin-left: auto, keine absolute Position, keine
+   Fläche, kein Schatten.
+
+   Maskenmaße von linkedin-in-brands-solid-full_new_.svg, aus der Datei
+   gerechnet (viewBox 640):
+
+     x 96 .. 544   ->  Zeichnung 70,0 % der Kastenbreite, links 15,0 % leer
+     y 64 .. 512   ->  Zeichnung 70,0 % der Kastenhöhe,   oben 10,0 % leer
+
+   DER KASTEN DES LINKS IST DIE ZEICHNUNG, nicht die Maske. Vorher trug das
+   <a> die Maske samt ihrer leeren Ränder und zusätzlich einen Innenabstand
+   als Tippziel; seine anklickbare Fläche reichte dadurch rund 9px nach links
+   über die Marke hinaus — der Zeiger sprang schon neben dem Zeichen auf die
+   Hand. Jetzt ist das <a> genau so groß wie die gezeichnete Marke, und die
+   Maske hängt als absolut gesetztes Kind darin: um ihre leeren Ränder nach
+   links und oben herausgerückt, sodass die Zeichnung den Linkkasten exakt
+   ausfüllt.
+
+   Höhe: 10 % über der Versalhöhe der Zeile — so groß wie die Großbuchstaben
+   daneben, nur eine Spur kräftiger.
+
+   Ausrichtung: das <a> hat keinen Inhalt im Textfluss (Maske und
+   Screenreader-Text stehen beide absolut), seine Grundlinie ist damit seine
+   untere Randkante. Mit vertical-align: baseline steht die Unterkante der
+   Zeichnung deshalb auf der Grundlinie der Zeile — wie die Großbuchstaben
+   daneben.
+
+   Der linke Rand ist der SICHTBARE Abstand zum Wort davor, weil der
+   Linkkasten an der Zeichnung beginnt. */
+.contact__social {
+  --linkedin-ink: 0.7;
+  --linkedin-lead: 0.15;
+  --linkedin-top: 0.1;
+  --linkedin-mark: calc(1.1em * var(--cap-height));
+  --linkedin-box: calc(var(--linkedin-mark) / var(--linkedin-ink));
+  position: relative;
+  display: inline-block;
+  width: var(--linkedin-mark);
+  height: var(--linkedin-mark);
+  margin-left: 0.45em;
+  vertical-align: baseline;
+}
+
+/* Die Marke nimmt die Textfarbe des Pop-ups an (CDF-Hellgrau über
+   currentColor in .icon) — kein LinkedIn-Blau. */
+.contact__social .icon {
+  position: absolute;
+  top: calc(-1 * var(--linkedin-top) * var(--linkedin-box));
+  left: calc(-1 * var(--linkedin-lead) * var(--linkedin-box));
+  width: var(--linkedin-box);
+  height: var(--linkedin-box);
+  /* Die Maske ragt mit ihren leeren Rändern über den Linkkasten hinaus. Als
+     Kind des <a> würde sie dort Klicks fangen — genau die unsichtbare Fläche
+     neben dem Zeichen. Anklickbar ist deshalb allein der Kasten des <a>, und
+     der IST die gezeichnete Marke. */
+  pointer-events: none;
+}
+
+/* Aus demselben Grund die Screenreader-Zeile: sie steht absolut und liegt mit
+   ihrem negativen Rand einen Pixel über der linken oberen Ecke des Links.
+   Vorgelesen wird sie unverändert, angeklickt werden kann sie nicht mehr. */
+.contact__social .sr-only {
+  pointer-events: none;
 }
 
 /* Mailadresse als sichtbarer Link, Telefonnummer optisch wie Text —
@@ -922,6 +1566,19 @@ body.is-preload *::after {
    also 63,6px auf dem Desktop. Weil die Kapitel keinen eigenen Innenrand mehr
    haben, gilt dieser Abstand gleichermaßen zwischen Text und nächster
    Überschrift wie zwischen Bildunterschrift und nächstem Bild. */
+/* --- Anschnitt des nächsten Kapitels ----------------------------------
+   Steht ein Kapitel eingerastet, ist der obere Rand des nächsten unten am
+   Bildschirmrand sichtbar. Er ist kein eigenes Element und kein Verlauf — es
+   ist das echte nächste Kapitel, und solange dieses nicht aufgedeckt ist,
+   liegt die Weichzeichnung des Reveals darauf (Bild blur(14px), Text
+   blur(5px) bei 0,3 Deckkraft). Beim Hineinscrollen klart es auf.
+
+   Die Kapitel sind dabei genau so hoch wie ihr Inhalt. Eine Mindesthöhe
+   hatte den Anschnitt zwar überall gleich schmal gemacht, hängte kurzen
+   Kapiteln aber Leerraum an — im Racing-Pop-up standen zwischen Kapitel 1
+   und 2 dann 63,7px, zwischen 2 und 3 aber 243,9px. Gleiche Abstände
+   zwischen den Kapiteln wiegen schwerer als ein überall gleich breiter
+   Anschnitt. */
 .story {
   display: flex;
   min-height: 0;
@@ -930,6 +1587,7 @@ body.is-preload *::after {
      die Überschrift beim Einrasten an der Oberkante. */
   scroll-margin-top: var(--story-gap);
 }
+
 
 .story + .story {
   margin-top: var(--story-gap);
@@ -960,7 +1618,7 @@ body.is-preload *::after {
    geerbten 1.6 säße sie rund 8px tiefer. */
 .story__title {
   margin: 0 0 0.4rem;
-  font-size: clamp(1.0625rem, 1.6vw, 1.25rem);
+  font-size: var(--text-story-title);
   font-weight: var(--weight-bold);
   line-height: var(--lh-tight);
   letter-spacing: var(--tracking-subhead);
@@ -1038,6 +1696,14 @@ body.is-preload *::after {
    auf volle Stärke — das Bild wacht unter dem Zeiger auf. */
 .story__media img,
 .story__media video {
+  /* Bildausschnitt. Standard ist 1 — das Bild füllt seinen Kasten und wird
+     nicht beschnitten. Ein Kapitel kann den Wert erhöhen, um enger auf sein
+     Motiv zu gehen (siehe .story--imola); die Verschiebung rückt dabei den
+     gewünschten Punkt des Bildes auf die Kastenmitte. Weil skaliert und nicht
+     verzerrt wird, bleibt das Seitenverhältnis des Motivs erhalten. */
+  --media-zoom: 1;
+  --media-shift-x: 0%;
+  --media-shift-y: 0%;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -1054,15 +1720,70 @@ body.is-preload *::after {
   }
 }
 
+/* --- Imola: enger auf den silbernen Wagen ------------------------------
+   Die Aufnahme ist 904 x 1130 und damit genau im 4:5-Kasten — ohne Zutun
+   wird nichts beschnitten, und rund ein Drittel der Fläche ist leere
+   Fahrbahn über dem Wagen. Nicolas' Wagen liegt bei 37 % / 55 % der
+   Bildfläche.
+
+   Der Zoom von 1,4 zeigt 71 % der Kantenlängen, die Verschiebung rückt
+   diesen Punkt auf die Kastenmitte. Beschnitten wird dadurch oben 218px und
+   unten 105px — überwiegend aus dem oberen Bereich, der Kies- und Grünstreifen
+   am unteren Rand bleibt stehen. Der Ausschnitt misst 646 x 807 Pixel und ist
+   damit immer noch fast doppelt so breit wie der Kasten (363px): es wird
+   weiterhin herunter- und nicht heraufgerechnet. */
+.story--imola .story__media img {
+  --media-zoom: 1.4;
+  --media-shift-x: 13%;
+  --media-shift-y: -5%;
+}
+
+/* Genau zwei Zeilen. Der Umbruch steht im Markup; damit die ERSTE Zeile
+   nicht ihrerseits umbricht, ist der Grad an die Breite des Bildkastens
+   gebunden: „Autodromo Internazionale Enzo e Dino Ferrari · Imola ·
+   April 25, 2026" misst im Satz 32,27em (mit --tracking-small), gerechnet
+   wird mit 32,5em, damit am Zeilenende etwas Luft bleibt.
+
+     1440 x 900: 362,88px / 32,5 = 11,2px statt der sonstigen 12px          */
+.story__caption--two-line {
+  font-size: min(clamp(0.6875rem, 0.85vw, 0.75rem),
+                 calc(var(--half-figure-w) / 32.5));
+}
+
+/* Die Quelle steht in der zweiten Zeile und bleibt dort geschlossen. */
+.story__credit {
+  white-space: nowrap;
+}
+
+/* --- Racing-Hero: Kapitel 1 des Racing-Pop-ups ------------------------
+   Streckenverlauf, Rennwochenende und Countdown, sonst nichts. Das Kapitel
+   hat kein Bild mehr und damit auch keine zweite Spalte: der Block steht
+   mittig auf der vollen Kapitelbreite, seine Maße kommen aus .countdown. */
+.story--racing-hero .story__frame {
+  justify-content: center;
+}
+
+.story--racing-hero .story__text {
+  width: 100%;
+}
+
 /* --- Kapitel 2 und 3: Bild und Text nebeneinander -------------------- */
 /* align-items: stretch gibt der Textspalte automatisch dieselbe Höhe wie
    das Bild, die Überschrift beginnt damit auf der Bildoberkante. */
 
+/* align-items: stretch gibt der Textspalte automatisch dieselbe Höhe wie das
+   Bild — die Überschrift beginnt damit auf der Bildoberkante statt mittig
+   daneben. Zusammen mit der engen Zeilenhöhe von .story__title (--lh-tight)
+   liegen Überschriftoberkante und Bildoberkante auf derselben Linie.
+
+   Das ist der Standard für JEDES Kapitel mit Hochformat in JEDEM
+   In-Site-Pop-up, nicht die Ausnahme für eines: die Regel greift über
+   .story--split, und genau diese Klasse tragen alle nebeneinander gesetzten
+   Kapitel beider Pop-ups. Gleiche Auflösung wie auf manuel-beck.com, damit
+   die beiden Auftritte dieselbe Satzlogik zeigen. */
 .story--split .story__frame {
   flex-direction: row;
-  /* Mittig statt oben: die Texte sind kurz, oben ausgerichtet bliebe unter
-     Bild und Text eine große leere Fläche im Kapitel stehen. */
-  align-items: center;
+  align-items: stretch;
   justify-content: flex-start;
   gap: clamp(1.25rem, 2.5vw, 2.25rem);
 }
@@ -1073,6 +1794,18 @@ body.is-preload *::after {
 .story--media-first .story__frame {
   flex-direction: column;
   justify-content: center;
+}
+
+/* Das vorangestellte Querformat behält sein Seitenverhältnis, statt die
+   Resthöhe des Kapitels zu füllen. Vorher war der Kasten flacher als 16:9 und
+   cover schnitt das Foto oben und unten an; mit dem festen Verhältnis steht
+   das ganze Bild. Auf sehr flachen Fenstern greift die max-height und dann
+   schneidet object-position: bottom oben ab — die Unterkante bleibt. */
+.story--media-first .story__media {
+  flex: 0 0 auto;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  max-height: var(--split-media-max-h);
 }
 
 /* Kapitel 4: Bild links. Das Medium ist im Markup das zweite Element,
@@ -1095,6 +1828,30 @@ body.is-preload *::after {
   width: min(42%, calc(var(--split-media-max-h) * 4 / 5));
 }
 
+/* --- Mittelachse ------------------------------------------------------
+   Diese Kapitel teilen die Textfläche exakt in zwei Hälften: die Textspalte
+   ist 50 % breit, die Bildspalte 50 % minus Spaltenabstand. Damit fällt EINE
+   senkrechte Linie zusammen — die waagerechte Mitte des Pop-up-Fensters:
+
+     · die rechte Kante der Standings-&-Results-Tabelle
+     · der linkeste Punkt des Streckenverlaufs
+     · die untere linke Ecke der ersten Countdown-Kachel
+
+   Der Bildkasten behält seine Deckelung über die verfügbare Höhe, damit er
+   auf flachen Fenstern nicht über das Kapitel hinauswächst. */
+.story--half .story__frame {
+  gap: var(--split-gap);
+}
+
+.story--half .story__text {
+  flex: 0 0 50%;
+  max-width: 50%;
+}
+
+.story--half .story__figure {
+  width: min(calc(50% - var(--split-gap)), calc(var(--split-media-max-h) * 4 / 5));
+}
+
 .story--split .story__media {
   flex: 0 0 auto;
   width: 100%;
@@ -1107,6 +1864,7 @@ body.is-preload *::after {
 
 .story--split .story__text {
   flex: 1 1 auto;
+  align-self: stretch;
 }
 
 /* --- Reveal ------------------------------------------------------------ */
@@ -1121,11 +1879,13 @@ body.is-preload *::after {
 .story:not(.is-revealed) .story__media img,
 .story:not(.is-revealed) .story__media video {
   opacity: 0.65;
-  transform: scale(1.06);
+  transform: scale(calc(var(--media-zoom) * 1.06))
+             translate(var(--media-shift-x), var(--media-shift-y));
 }
 
 .story:not(.is-revealed) .story__text,
-.story:not(.is-revealed) .story__caption {
+.story:not(.is-revealed) .story__caption,
+.story:not(.is-revealed) .countdown {
   opacity: 0.3;
   filter: blur(5px);
 }
@@ -1137,11 +1897,13 @@ body.is-preload *::after {
 .story.is-revealed .story__media img,
 .story.is-revealed .story__media video {
   opacity: 1;
-  transform: scale(1);
+  transform: scale(var(--media-zoom))
+             translate(var(--media-shift-x), var(--media-shift-y));
 }
 
 .story.is-revealed .story__text,
-.story.is-revealed .story__caption {
+.story.is-revealed .story__caption,
+.story.is-revealed .countdown {
   opacity: 1;
   filter: blur(0);
 }
@@ -1150,8 +1912,687 @@ body.is-preload *::after {
 @media (hover: hover) and (pointer: fine) {
   .story.is-revealed .story__media:hover img,
   .story.is-revealed .story__media:hover video {
-    transform: scale(1.06);
+    transform: scale(calc(var(--media-zoom) * 1.06))
+               translate(var(--media-shift-x), var(--media-shift-y));
   }
+}
+
+/* --- Countdown auf das nächste Rennwochenende ------------------------- */
+/* Steht in Kapitel 1 des Racing-Pop-ups in der Textspalte, das Hochformat
+   liegt links daneben. Die Spalte teilt sich in drei Zeilen: oben die Hälfte
+   für den Streckenverlauf, darunter zwei Viertel für Ort/Datum und für die
+   Zähler — dieselbe Fläche, die vorher das Querformat einnahm.
+
+   Reveal-Behandlung wie ein Bildkasten, siehe Reveal-Abschnitt. */
+.countdown {
+  /* --- EIN Faktor für den ganzen Block ---------------------------------
+     Ort, Datum, Kicker und die vier Kacheln stehen um ein Drittel größer als
+     zuvor. Der Faktor sitzt an genau einer Stelle, damit die drei Zeilen und
+     die Kacheln nicht auseinanderlaufen.
+
+     Auf flachen Fenstern fällt er auf 1 zurück: die Spalte ist dort nur so
+     hoch wie das Hochformat daneben, und der vergrößerte Satz liefe unten
+     aus dem Block heraus. */
+  /* 1,8 statt 1,33: das Kapitel trägt seit dem Wegfall des Helmbildes nur
+     noch diesen Block, und er nimmt die ganze Kapitelfläche ein. */
+  --countdown-scale: 1.8;
+
+  /* Zeilenabstand im Kopf (Kicker → Ort → Datum). */
+  --countdown-gap: calc(0.2rem * var(--countdown-scale));
+
+  /* --- Kachel ---------------------------------------------------------
+     Die Höhe ist nicht gesetzt, sondern gerechnet: Ziffer, Zwischenraum,
+     Einheit und zweimal die Luft an Ober- und Unterkante.
+
+     Die Luft ist an den Zifferngrad gebunden und wächst deshalb mit ihm.
+     Ursprünglich waren es 0,1617 des Grades, dann 0,2425; jetzt 0,32 — die
+     Ziffer steht dadurch freier im Modul, und weil die Kachelhöhe unten aus
+     Ziffer, Einheit und zweimal dieser Luft GERECHNET wird, wächst das Modul
+     im selben Verhältnis mit. Oben über der Ziffer und unten unter der
+     Einheit steht damit in allen vier Modulen derselbe Betrag. */
+  --tile-value-size: calc(clamp(0.8125rem, min(1.5vw, 3.1vh), 1.25rem)
+                          * var(--countdown-scale));
+  --tile-unit-size: calc(clamp(0.4375rem, min(0.6vw, 1.3vh), 0.5rem)
+                         * var(--countdown-scale));
+  --tile-inner-gap: calc(0.08rem * var(--countdown-scale));
+  --tile-air: calc(var(--tile-value-size) * 0.32);
+  /* Fuge zwischen zwei Modulen, senkrecht zur gemeinsamen Kante gemessen.
+     Sichtbar, aber zurückhaltend — und wie alles hier an --countdown-scale
+     gebunden, damit sie mitwächst. 1440 × 900: 7,2px. */
+  --tile-gap: calc(0.25rem * var(--countdown-scale));
+  --tile-h: calc(var(--tile-value-size) * 1.05
+                 + var(--tile-inner-gap)
+                 + var(--tile-unit-size) * 1.25
+                 + 2 * var(--tile-air));
+  /* Breite: die Blockbreite abzüglich des 45°-Versatzes, geviertelt — das
+     Maß der früheren vierreihigen Anordnung — und um denselben Faktor
+     gewachsen. */
+  --tile-w: calc((100% - var(--tile-h) * var(--slant-tan)) / 4
+                 * var(--countdown-scale));
+
+  /* Drei Zeilen, die ihre Höhe aus dem Inhalt nehmen; den freien Rest
+     verteilt align-content: space-between zu GLEICHEN Teilen auf die beiden
+     Zwischenräume. Genau das ist gefordert: der Abstand vom Streckenverlauf
+     zur Zeile „Next race weekend" ist damit derselbe wie der von dort zur
+     Oberkante der Kacheln — unabhängig davon, wie groß der Satz ausfällt.
+
+     Oben schliesst der Streckenverlauf an der Kante ab, unten die
+     Kachelfläche — und weil die Spalte genau so hoch ist wie der Bildkasten
+     daneben, endet sie auf der Unterkante des Helmbildes. */
+  display: grid;
+  grid-template-rows: auto auto auto;
+  align-content: space-between;
+  justify-items: stretch;
+  /* Der Block steht allein im Kapitel und mittig darin. Seine Höhe ist die
+     volle Kapitelhöhe (Overlay ohne Innenrand), seine Breite an dieselbe
+     Größe gebunden — dadurch bleibt das Verhältnis von Streckenverlauf,
+     Kopfzeilen und Kachelband auf jedem Fenster dasselbe.
+
+     Die dritte Grenze ist die Notbremse für schmale Fenster. Das Kachelband
+     ist BREITER als der Block: --tile-w rechnet mit --countdown-scale, und
+     dazu kommen die waagerechte Fuge und der 45°-Überhang beider Reihen.
+     Seine Gesamtbreite misst
+
+       2 × --tile-w + Fuge × sec + (2 × Kachelhöhe + Fuge) × tan
+
+     Auf dem Desktop liegt sie noch bequem in der Textspalte; auf Telefonen
+     lief das Band darüber hinaus und erzeugte waagerechten Scroll. Nach
+     --tile-w aufgelöst und in eine Höchstbreite für den Block zurückgerechnet
+     bleibt das Band ab hier immer innerhalb der Spalte. */
+  width: min(100%,
+             calc(var(--split-media-max-h) * 0.8),
+             calc((100% - var(--tile-gap) * var(--slant-sec)
+                   - (2 * var(--tile-h) + var(--tile-gap)) * var(--slant-tan))
+                  * 2 / var(--countdown-scale)
+                  + var(--tile-h) * var(--slant-tan)));
+  margin-inline: auto;
+  height: var(--split-media-max-h);
+  min-height: 0;
+  transition: opacity var(--fade) var(--ease-soft) 100ms,
+              filter var(--fade) var(--ease-soft) 100ms;
+}
+
+/* Streckenverlauf. EINE durchgehende Kurve: die Mittellinie des Korridors,
+   den die Vorlage aus zwei Linien zeichnet. Sie ist als geschlossene
+   Bézier-Kette gesetzt (149 Knoten).
+
+   An JEDEM der 149 Knoten laufen die beiden Kontrollpunkte jetzt auf einer
+   gemeinsamen Tangente — der Richtungssprung ist dort exakt 0° statt bis zu
+   4,76°. Das waren die sichtbaren Knicke. Die Knotenpunkte selbst sind
+   unverändert, die Geometrie der Strecke also auch; die Kurve dazwischen
+   weicht um höchstens 0,043 Einheiten ab (viewBox 622,87 breit).
+
+   Strichstärke: doppelt DIE Strichstärke der Seite. Als Haarlinie las sich
+   der Verlauf ungleichmäßig, weil die Kantenglättung bei gut 1px je nach
+   Winkel unterschiedlich viel Deckung erzeugt. vector-effect (im Markup
+   gesetzt) hält den Strich in jeder Größe auf genau diesem Maß, er kann
+   also nirgends dünner oder dicker werden. Farbe ist das CDF-Hellgrau des
+   Fließtextes, ohne Abschwächung. */
+.countdown__track {
+  /* aspect-ratio nach dem viewBox: der Kasten trägt damit exakt die
+     Proportion der Zeichnung — die Unterkante des Kastens IST die unterste
+     Linie der Strecke. Genau darauf bezieht sich der Abstand darunter. */
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 622.87 / 350.66;
+  overflow: visible;
+}
+
+.countdown__track-line {
+  fill: none;
+  stroke: var(--color-light);
+  stroke-width: calc(var(--line-w) * 2);
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* Mittig unter dem Streckenverlauf und deutlich größer — der Platz kommt
+   daher, dass die vier Kacheln jetzt in einer Reihe stehen statt in zwei. */
+.countdown__head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--countdown-gap);
+  text-align: center;
+}
+
+/* Kein Kicker mehr: die Zeile steht in Gemischtschreibung und trägt damit
+   auch keine Sperrung — eine Sperrung von 0,2em ist ein Versalien-Mittel und
+   zerfiele auf Kleinbuchstaben zu lose gesetzten Einzelzeichen.
+
+   Grad und Farbe wie der Fließtext der Pop-ups: derselbe Grad, den der
+   Tabellenstand darunter trägt („Austria Formel Cup"), und das volle
+   CDF-Hellgrau ohne Abschwächung. Dasselbe gilt für die Datumszeile. */
+.countdown__label {
+  margin: 0;
+  font-size: calc(var(--text-body-compact) * var(--countdown-scale));
+  line-height: var(--lh-ui);
+}
+
+/* Ortsname im Grad der Kapitelüberschrift daneben („Standings & Results").
+   align-items: baseline statt center: nur so lässt sich die Flagge auf die
+   Versalhöhe des Wortes setzen (siehe .countdown__flag). */
+.countdown__place {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4em;
+  margin: 0;
+  font-size: calc(var(--text-story-title) * var(--countdown-scale));
+  font-weight: var(--weight-bold);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-subhead);
+  text-transform: uppercase;
+}
+
+.countdown__date {
+  margin: 0;
+  font-size: calc(var(--text-body-compact) * var(--countdown-scale));
+  line-height: var(--lh-ui);
+}
+
+/* Die Flagge ist gezeichnet, kein Emoji: als Emoji brächte sie die
+   Systemschrift und deren Rundungen mit. Die Ecken sind abgerundet wie die
+   Bildkästen der Pop-ups.
+
+   Sie steht genau auf der Versalhöhe des Ortsnamens: „BRNO" läuft in
+   Versalien, seine sichtbare Höhe ist damit die Versalhöhe von Saira
+   (--cap-height, 0,688 em) und reicht von der Grundlinie nach oben. Die
+   Flagge ist genau so hoch, ihr Seitenverhältnis 3:2 gibt die Breite. Weil
+   der Kasten keinen Textinhalt hat, ist seine Grundlinie die Unterkante —
+   align-items: baseline im Elternelement setzt sie damit auf die Grundlinie
+   des Wortes. Oberkante und Unterkante liegen so auf Oberkante und
+   Unterkante von „BRNO". */
+.countdown__flag {
+  display: block;
+  flex: 0 0 auto;
+  height: calc(1em * var(--cap-height));
+  width: calc(1em * var(--cap-height) * 3 / 2);
+  line-height: 0;
+}
+
+.countdown__flag svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* Vier Kacheln in ZWEI Reihen, mittig unter der Datumszeile:
+
+     DAYS  HRS
+     MIN   SEC
+
+   MIN und SEC sind die vormals dritte und vierte Kachel — sie stehen jetzt
+   links unter DAYS und HRS statt rechts daneben. Die Kachelbreite bleibt
+   dabei genau die von vorher: vier Kacheln, drei Spaltenabstände und der
+   45°-Versatz auf der Blockbreite. Nur die Anordnung hat sich geändert, nicht
+   das Maß.
+
+   Der Zeilenabstand ist --countdown-gap, also derselbe Abstand, der zwischen
+   „Next race weekend" und „BRNO" liegt: die Unterkante der DAYS-Kachel sitzt
+   damit genau so weit über der Oberkante der MIN-Kachel, und ebenso HRS über
+   SEC.
+
+   justify-content: center stellt den Block auf die Mittelachse des
+   Countdowns — dieselbe Achse, auf der Ort und Datum darüber zentriert sind.
+   Einen Randausgleich braucht es dafür nicht: skewX() schert um die Mitte des
+   Kastens, die Fläche ragt links und rechts um gleich viel darüber hinaus und
+   ihre optische Mitte IST die Kastenmitte. */
+/* --- Die vier Kacheln sind VIER getrennte Module ----------------------
+   Sie stehen in zwei Reihen und zwei Spalten und berühren sich nirgends:
+
+     DAYS  HRS
+     MIN   SEC
+
+   Zwischen je zwei benachbarten Modulen liegt derselbe Abstand, und zwar
+   SENKRECHT ZUR GEMEINSAMEN KANTE gemessen — nur so ist er an allen vier
+   Fugen gleich breit:
+
+     DAYS|HRS und MIN|SEC  treffen sich an ihren 45,10°-Kanten. Ein
+       senkrechter Abstand --tile-gap heißt dort waagerecht
+       --tile-gap × sec(45,10°).
+     DAYS|MIN und HRS|SEC  treffen sich an ihren Waagerechten. Dort IST der
+       senkrechte Abstand der Zeilenabstand.
+
+   Die untere Reihe rückt zusätzlich nach links, damit die geneigten Kanten
+   der beiden Reihen auf EINER Geraden weiterlaufen — die Fuge unterbricht
+   sie, sie knickt aber nicht. Der Versatz bemisst sich an der Strecke, die
+   zwischen den beiden Kanten liegt: Kachelhöhe plus Fuge.
+
+   Ausgerichtet wird die GESAMTE Fläche: weil die Anordnung punktsymmetrisch
+   ist, fallen Umriss-Mitte und Flächenschwerpunkt zusammen — eine optische
+   Korrektur über die geometrische Mitte hinaus braucht es nicht. Gegenüber
+   der Rastermitte liegt diese Mitte um die halbe waagerechte Fuge nach
+   rechts und um den halben Reihenversatz nach links verschoben; translateX
+   nimmt genau diese Differenz zurück. */
+.countdown__clock {
+  --tile-gap-x: calc(var(--tile-gap) * var(--slant-sec));
+  --tile-row-shift: calc((var(--tile-h) + var(--tile-gap)) * var(--slant-tan));
+
+  display: grid;
+  grid-template-columns: repeat(2, var(--tile-w));
+  justify-content: center;
+  gap: 0;
+  transform: translateX(calc((var(--tile-row-shift) - var(--tile-gap-x)) / 2));
+}
+
+/* Waagerecht wird über left verschoben und nicht über einen Rand: die
+   Kachelbreite kommt aus der Rasterspur (--tile-w rechnet mit 100 % der
+   Blockbreite und darf deshalb nur DORT stehen), und ein Rand würde sie
+   verändern. Senkrecht dagegen muss der Rand greifen — die untere Reihe soll
+   die Zeilenhöhe wirklich um eine Strichstärke verkürzen.
+
+   Untere Reihe: an die Waagerechte der oberen herangezogen UND um den
+   Schrägversatz nach links, damit die geneigten Kanten durchlaufen.
+   Rechte Spalte: an die Schrägkante der linken herangezogen. */
+.countdown__tile:nth-child(2) {
+  left: var(--tile-gap-x);
+}
+
+.countdown__tile:nth-child(3),
+.countdown__tile:nth-child(4) {
+  margin-top: var(--tile-gap);
+}
+
+.countdown__tile:nth-child(3) {
+  left: calc(-1 * var(--tile-row-shift));
+}
+
+.countdown__tile:nth-child(4) {
+  left: calc(var(--tile-gap-x) - var(--tile-row-shift));
+}
+
+/* Umrandung wie die Schaltflächen der Startseite: das i-Pünktchen der
+   Wortmarke — 45,10° Neigung, gerundet nur auf den beiden stumpfen Ecken.
+   Der Rahmen ist ein eigenes Kästchen, damit die Ziffern aufrecht stehen. */
+.countdown__tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--tile-inner-gap);
+  height: var(--tile-h);
+  min-width: 0;
+  padding: 0 0.3rem;
+}
+
+/* Rückfallebene ohne JavaScript, siehe .action::before. Die Farbe steht
+   dagegen hier UND auf dem gezeichneten Rahmen: linke Spalte (DAYS, MIN)
+   rubinrot, rechte Spalte (HRS, SEC) orange — der Wechsel der beiden
+   Querbalken der Wortmarke, senkrecht gestellt. Volle Deckkraft: beides sind
+   Akzentfarben, und dem Rubinrot bliebe abgeschwächt kein Kontrast. */
+.countdown__tile::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: calc(var(--line-w) * 2) solid var(--tile-line);
+  border-radius: var(--action-frame-radius) 0 var(--action-frame-radius) 0;
+  transform: skewX(var(--slant));
+}
+
+/* Spaltenweise: links DAYS und MIN rubinrot, rechts HRS und SEC orange —
+   der Balkenwechsel der Wortmarke, senkrecht gestellt. Die Beschriftung
+   bleibt in allen vier Modulen im CDF-Hellgrau. */
+.countdown__tile:nth-child(odd) {
+  --tile-line: var(--color-ruby);
+}
+
+.countdown__tile:nth-child(even) {
+  --tile-line: var(--color-orange);
+}
+
+.countdown__tile > .frame {
+  top: 0;
+  left: calc(-0.5 * var(--tile-h) * var(--slant-tan));
+  width: calc(100% + var(--tile-h) * var(--slant-tan));
+  height: var(--tile-h);
+}
+
+.countdown__tile > .frame .frame__shape {
+  stroke: var(--tile-line);
+  /* Dieselbe Strichstärke wie der Streckenverlauf darüber: doppelt DIE
+     Strichstärke der Seite. Beide Formen gehören sichtbar zum selben
+     System. main.js liest die gerechnete Stärke aus und setzt den Pfad
+     entsprechend nach innen — der Strich bleibt im Kasten. */
+  stroke-width: calc(var(--line-w) * 2);
+}
+
+.countdown__value {
+  position: relative;
+  font-size: var(--tile-value-size);
+  font-weight: var(--weight-bold);
+  line-height: 1.05;
+  letter-spacing: var(--tracking-subhead);
+  font-variant-numeric: tabular-nums;
+}
+
+.countdown__unit {
+  position: relative;
+  font-size: var(--tile-unit-size);
+  line-height: 1.25;
+  letter-spacing: 0.12em;
+  text-indent: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.65;
+}
+
+/* --- Tabellenstand und Rennergebnisse -------------------------------- */
+/* Steht links neben dem Hochformat in Kapitel 2 des Racing-Pop-ups.
+
+   Beide Bloecke — die vier Fuehrungen und die Rennliste — liegen auf
+   DEMSELBEN Raster aus drei gleichen Dritteln: Strecke | Austria Formel Cup |
+   TopJet F2000. Die Punktangabe der Fuehrungen sitzt rechtsbuendig im
+   dritten Drittel und schliesst damit exakt dort ab, wo die TopJet-Spalte der
+   Tabelle endet. Links beginnen beide an derselben Kante.
+
+   Alle Trennlinien sind 1px stark und haben denselben Farbwert — dieselbe
+   Strichstaerke wie die Umrandung der Countdown-Kacheln und der
+   Schaltflaechen. Unterschiedliche Deckkraft wuerde sich als
+   unterschiedliche Dicke lesen.
+
+   Durchgehend abgekuerzt, weil die Spalte nur rund 470px breit ist:
+   P1 statt „1. Platz", Pts statt „Punkte", FL fuer die schnellste Runde. */
+
+.standings,
+.results {
+  /* Trennlinien im CDF-Hellgrau, halb so dick wie DIE Strichstärke der
+     Seite — in diesem Block tragen sie nur die Gliederung, nicht die Form. */
+  --rule: var(--color-light);
+  --rule-w: calc(var(--line-w) / 2);
+  font-size: var(--results-font);
+}
+
+/* Tabellenstand und Rennliste tragen EINEN Schriftgrad und EINE Textfarbe:
+   --results-font (Rechnung dort) und das volle CDF-Hellgrau des Fließtextes.
+   Ausgezeichnet ist nur, was die Aussage trägt — die orangen Platzangaben.
+   Die Quellenangabe behält allein ihre zurückgenommene Deckkraft. */
+.standings {
+  width: var(--results-w);
+  /* Kein Abstand nach unten: darunter steht die Fußnote des Tabellenstandes,
+     und die sitzt genauso dicht unter ihrer Tabelle wie „*Technical issue."
+     unter der Rennliste — dort trennt die beiden ebenfalls nur der
+     Innenabstand der letzten Zellenzeile. Den Abstand zur Rennliste trägt
+     jetzt die Fußnote selbst. */
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.standings__row {
+  display: grid;
+  /* Drei echte Spalten: Platz | Serienname | Wert. Die erste Spur ist so
+     breit wie der Einzug, den „Austria Formel Cup" bisher hatte (2,1em) —
+     alle vier Seriennamen beginnen dadurch auf derselben senkrechten Linie.
+     Die mittlere nimmt den Rest, die dritte genau ihre Textbreite und
+     schliesst rechtsbuendig auf der Tabellenkante ab. */
+  grid-template-columns: 2.1em 1fr auto;
+  align-items: baseline;
+  padding-block: 0.3rem;
+  border-top: var(--rule-w) solid var(--rule);
+  line-height: var(--lh-ui);
+}
+
+.standings__row:last-child {
+  border-bottom: var(--rule-w) solid var(--rule);
+}
+
+/* Die Fuehrung ist die Aussage des Blocks — sie steht in der Akzentfarbe und
+   ist die einzige Stelle im Pop-up, an der Orange auftritt. */
+.standings__pos {
+  color: var(--color-orange);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-subhead);
+}
+
+.standings__name {
+  /* Rechts ein Zeichenabstand, damit der laengste Name („Austrian Racing Car
+     Championship") nicht an die Wertspalte stoesst. */
+  padding-right: 1em;
+}
+
+/* Die Punktangabe schliesst rechts ohne Zellabstand ab: ihr letztes Zeichen
+   liegt damit genau auf der rechten Kante des Helmbildes — dieselbe
+   senkrechte Linie, auf der darunter das „s" von „Pts" endet. */
+.standings__pts {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.results {
+  width: var(--results-w);
+  /* fixed: ohne die Festlegung zieht die Streckenspalte alle Breite an sich
+     und die sechs Ergebnisspalten brechen um. */
+  table-layout: fixed;
+  border-collapse: collapse;
+  line-height: var(--lh-ui);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Spaltengeometrie ------------------------------------------------
+   Drei Blöcke: Strecke | Austria Formel Cup | TopJet F2000. Die beiden
+   Serienblöcke sind genau so breit wie ihr TITEL — nur dann beginnt „R1"
+   auf derselben senkrechten Linie, auf der der Titel darüber beginnt, und
+   nur dann endet „TopJet F2000 · Gold" auf der rechten Tabellenkante, also
+   auf derselben Linie wie „after 4/6" im Tabellenstand darüber. Im Satz
+   gemessen, mit Kerning und Tabellenziffern:
+
+     Strecke, längster Eintrag  „16–18 Oct · Season finale"   11,96em
+     Austria, Serientitel       „Austria Formel Cup · AF3-T"  12,17em
+     TopJet,  Serientitel       „TopJet F2000 · Gold"          9,00em
+
+   Gefordert ist ausserdem: der Abstand von der Streckenspalte zur
+   Austria-Spalte ist genauso groß wie der von der Austria-Spalte zur
+   TopJet-Spalte. Mit SA = Beginn der Austria-Spalte, L/R = linke/rechte
+   Tabellenkante:
+
+     SA − (L + 11,687em) = (R − 9,010em) − (SA + 12,181em)
+     2·SA = L + R − 9,504em
+     SA − L = --results-w / 2 − 4,752em          <- Breite der Streckenspalte
+
+   Die Lücke selbst misst --results-w / 2 − 16,439em; sie liegt als Überhang
+   in der letzten Austria-Zelle.
+
+   Innerhalb der Serien tragen R1 und R2 in BEIDEN Serien dieselbe Breite:
+   3,575em. Damit ist der Abstand von R1 zu R2 und von R2 zu Pts überall
+   gleich — und enger als zuvor (4,167em), ohne dass „Racing" (3,15em) an
+   die Nachbarspalte stösst. Pts nimmt jeweils den Rest seines Blocks; bei
+   TopJet sind das 1,860em, das Maß der dreistelligen Zahl.
+
+   Alle sieben Breiten stehen in em, keine in Prozent: bei
+   table-layout: fixed löst Chrome eine Prozentbreite gegen die Tabelle auf
+   und lässt den em-Teil eines calc() dabei fallen — aus
+   calc(50 % − 4,752em) wurde schlicht 50 %, und die beiden Prozentspalten
+   teilten den Rest zu gleichen Teilen unter sich auf. Die Tabelle ist
+   ohnehin genau 37,5em breit (--results-font ist --results-w / 37,5), die
+   sieben Werte summieren sich also auf ihre volle Breite:
+
+     13,998 + 3,575 + 3,575 + 7,342 + 3,575 + 3,575 + 1,860 = 37,5
+
+   Die Zellen tragen KEINEN waagerechten Innenabstand: die Spaltenkanten sind
+   die Textkanten, sonst wäre keines der Maße oben mehr exakt. */
+.results__col-round {
+  width: 13.998em;
+}
+
+.results__col-af-r1,
+.results__col-af-r2,
+.results__col-tj-r1,
+.results__col-tj-r2 {
+  width: 3.575em;
+}
+
+.results__col-af-pts {
+  width: 7.342em;
+}
+
+.results__col-tj-pts {
+  width: 1.860em;
+}
+
+.results th,
+.results td {
+  padding: 0.22rem 0;
+  text-align: center;
+  vertical-align: baseline;
+  font-weight: var(--weight-regular);
+}
+
+/* Die Serientitel stehen LINKSBÜNDIG in ihrer Spalte. Damit beginnt jeder
+   Titel auf genau derselben senkrechten Linie wie die Werte darunter: „R1"
+   trägt denselben Zellabstand, sein Text startet also an derselben Kante wie
+   der Titel darüber.
+
+   Die obere Trennlinie: der Tabellenstand darüber beginnt mit einer Linie und
+   endet mit einer — die Rennliste tut das jetzt ebenso. Die Linie läuft über
+   alle Zellen der Zeile, die leere Streckenzelle eingeschlossen. */
+.results__series th,
+.results__series td {
+  border-top: var(--rule-w) solid var(--rule);
+  text-align: left;
+  padding-top: 0.24rem;
+  padding-bottom: 0.28rem;
+  white-space: nowrap;
+}
+
+/* Der Titel der zweiten Serie steht rechtsbündig und endet damit auf der
+   rechten Kante der Tabelle — dieselbe Linie, auf der im Tabellenstand
+   darüber „after 4/6" endet. Weil seine Spalte genau seine Breite hat,
+   beginnt er trotzdem an derselben Linie wie „R1" darunter. */
+.results__series th:last-child {
+  text-align: right;
+}
+
+/* Round beginnt auf genau derselben Linie wie „Mugello" darunter — beide
+   ohne Zellabstand. Der Selektor führt .results mit, damit er die zwei
+   Klassen von „.results th" überbietet. */
+.results .results__round-head {
+  padding-left: 0;
+}
+
+/* Die Linie unter den beiden Serientiteln laeuft ueber die ganze Breite —
+   deshalb sitzt sie an der Unterkante ALLER Zellen der Kopfzeile, die
+   Streckenspalte eingeschlossen. */
+.results__subhead th,
+.results__subhead td {
+  border-top: var(--rule-w) solid var(--rule);
+  border-bottom: var(--rule-w) solid var(--rule);
+  padding-block: 0.24rem;
+  text-align: left;
+}
+
+/* Die Werte stehen linksbündig unter ihrer Spaltenüberschrift — mit
+   tabular-nums beginnen sie damit alle auf derselben Linie. Ausnahme ist die
+   Punktespalte, siehe .results__pts. */
+.results tbody td,
+.results tfoot td {
+  text-align: left;
+}
+
+/* Ohne Zellabstand links: Streckenname und Gesamtzeile beginnen damit auf
+   derselben Kante wie „Round" darüber und wie die linke Kante des
+   Helmbildes. Vorher standen sie um den Spaltenabstand von 0,15rem
+   eingerückt. */
+.results tbody th,
+.results tfoot th {
+  text-align: left;
+  padding-left: 0;
+}
+
+/* Zeilenabstand der Rennzeilen: halbiert gegenüber den 0,22rem, die die
+   Kopf- und Fußzeile weiter tragen. Gefordert war die Halbierung genau
+   zwischen den bestrittenen und den bevorstehenden Rennen. */
+.results tbody th,
+.results tbody td {
+  padding-block: 0.11rem;
+}
+
+.results__row th {
+  padding-right: 0.4rem;
+}
+
+.results__place {
+  display: block;
+}
+
+.results__date {
+  display: block;
+}
+
+/* Die Punktespalte ist die letzte ihrer Serie und schliesst rechts ohne
+   Zellabstand ab. Bei TopJet F2000 ist das die rechte Kante der Tabelle:
+   das „s" von „Pts" und die Zahlen darunter liegen damit genau auf der
+   rechten Kante des Helmbildes — dieselbe Linie wie die Punktangabe des
+   Tabellenstandes darüber. Bei Austria Formel Cup gilt dasselbe an der
+   Grenze zum zweiten Drittel. */
+/* Die Punktespalte ist die dritte ihrer Serie und liegt im Raster wie die
+   beiden davor: gleiche Breite, gleicher Zellabstand, linksbündig. R1, R2
+   und Pts beginnen dadurch in beiden Serien auf drei gleichabständigen
+   Linien. Ausgezeichnet ist nur die Stärke — die Punkte sind die Aussage
+   der Zeile. */
+.results .results__pts {
+  font-weight: var(--weight-bold);
+}
+
+.results .results__subhead .results__pts {
+  font-weight: var(--weight-regular);
+}
+
+.results__note {
+  text-align: left;
+}
+
+/* Trennt die beiden bevorstehenden Starts von allem, was gelaufen ist. */
+.results__row--last-next td,
+.results__row--last-next th {
+  border-bottom: var(--rule-w) solid var(--rule);
+}
+
+.results__row--next .results__place {
+  color: var(--color-orange);
+  font-weight: var(--weight-bold);
+}
+
+.results__mark {
+  vertical-align: super;
+  font-size: 0.8em;
+}
+
+.results tfoot th,
+.results tfoot td {
+  border-top: var(--rule-w) solid var(--rule);
+  /* Abschlusslinie wie beim Tabellenstand darüber. */
+  border-bottom: var(--rule-w) solid var(--rule);
+  padding-top: 0.32rem;
+}
+
+/* Abstand zur letzten Zeile halbiert, wie die Zeilenabstände darüber.
+
+   Die Breite ist die der Tabelle und nicht die der Textspalte: sonst liefen
+   die Fußnoten über die rechte Kante der Tabelle — und damit über die rechte
+   Kante des Helmbildes — hinaus. Grad und Farbe wie der Block darüber, nur
+   die Deckkraft bleibt zurückgenommen. */
+.results__footnote {
+  width: var(--results-w);
+  font-size: var(--results-font);
+  line-height: var(--lh-ui);
+  opacity: 0.55;
+}
+
+/* Beide Fußnoten stehen gleich weit unter der Abschlusslinie ihrer Tabelle.
+   Das Maß ist der Innenabstand, den die Fußzeile der Rennliste bisher schon
+   unter „Total Points" trug: 0,22rem. Der Selektor führt das Element mit —
+   .panel p setzt weiter oben margin: 0 und wäre sonst spezifischer. */
+p.results__footnote {
+  margin: 0.22rem 0 0;
+}
+
+/* Die Fußnote des Tabellenstandes steht zwischen den beiden Blöcken: oben im
+   Fußnotenabstand zum Tabellenstand, unten im Abstand, den vorher der
+   Tabellenstand selbst zur Rennliste hielt. */
+p.results__footnote--standings {
+  margin-bottom: clamp(0.75rem, 1.8vh, 1.1rem);
 }
 
 /* Schließen-Button */
@@ -1218,7 +2659,8 @@ body.is-preload *::after {
    deutsche Fassung links, englische rechts. */
 .legal-grid {
   display: grid;
-  grid-template-columns: 1fr 1px 1fr;
+  /* Mittelspalte ist die Trennlinie — dieselbe Strichstärke wie überall. */
+  grid-template-columns: 1fr var(--line-w) 1fr;
   column-gap: clamp(2rem, 5vw, 4.5rem);
   align-items: stretch;
   margin-block: auto; /* mittig im Raum unter dem Zurück-Link */
@@ -1330,6 +2772,10 @@ body.is-preload *::after {
 @media (max-width: 820px) {
   :root {
     --about-frame: clamp(1.25rem, 5vw, 1.75rem);
+    --text-body-compact: 0.875rem;
+    /* Gestapelt liegt das Helmbild über dem Text und nicht mehr daneben —
+       die Tabelle richtet sich dann an der Textbreite aus. */
+    --results-w: var(--content-w);
   }
 
   /* column-reverse stellt das Bild voran — im Markup steht bei diesen
@@ -1339,6 +2785,28 @@ body.is-preload *::after {
   .story--media-left .story__frame {
     flex-direction: column-reverse;
     justify-content: flex-end;
+  }
+
+  /* Gestapelt liegt die Textspalte nicht mehr neben dem Hochformat, sie hat
+     die volle Breite. Ohne diese Rücknahme blieb sie auf halber Breite
+     stehen — flex-basis bezieht sich in column-reverse auf die HÖHE, und
+     max-width griff weiter waagerecht. Tabellenstand, Rennliste und die
+     Kachelfläche des Countdowns liefen dadurch über ihre eigene Spalte
+     hinaus. */
+  .story--half .story__text {
+    flex: 0 0 auto;
+    max-width: none;
+  }
+
+  /* Und die Countdown-Spalte nimmt hier ihre Inhaltshöhe: sie steht nicht
+     mehr neben dem Hochformat, dessen Höhe zu übernehmen ergibt gestapelt
+     keinen Sinn — der Satz lief darunter aus dem Block heraus. Die beiden
+     Abstände (Streckenverlauf → Kopf → Kacheln) stehen dann als ein fester
+     Wert und sind damit weiter exakt gleich groß. */
+  .countdown {
+    height: auto;
+    align-content: start;
+    row-gap: clamp(1rem, 4vw, 1.75rem);
   }
 
   /* Bild und Bildunterschrift bleiben eine Einheit: die Spalte ist genau so
@@ -1389,9 +2857,11 @@ body.is-preload *::after {
   }
 
   /* Kleiner als am Desktop kalibriert — dort trägt die Zeilenlänge, hier
-     wirkte derselbe Grad zu dominant neben den Bildern. */
+     wirkte derselbe Grad zu dominant neben den Bildern. Der Wert steht am
+     Token und nicht an der Regel: Fließtext, Tabellenstand, Rennliste und
+     die beiden Countdown-Zeilen tragen denselben Grad und dürfen hier nicht
+     auseinanderlaufen. */
   .story__body {
-    font-size: 0.875rem;
     line-height: var(--lh-read);
   }
 
@@ -1418,7 +2888,8 @@ body.is-preload *::after {
   }
 
   .story:not(.is-revealed) .story__text,
-  .story:not(.is-revealed) .story__caption {
+  .story:not(.is-revealed) .story__caption,
+  .story:not(.is-revealed) .countdown {
     filter: blur(3px);
   }
 }
@@ -1487,7 +2958,7 @@ body.is-preload *::after {
   }
 
   .legal-grid__rule {
-    height: 1px;
+    height: var(--line-w);
   }
 
   .legal-grid > .legal:first-child,
@@ -1514,15 +2985,19 @@ body.is-preload *::after {
     --about-width: calc(100vw - 1.5rem);
     /* Der Footer steht hier zweizeilig — die Fußnotenhöhe für die
        Overlay-Berechnung wächst entsprechend mit. */
-    --footer-line: calc(14px * 1.4 * 2 + 0.35rem);
+    --footer-line: calc(var(--footer-size) * var(--lh-ui) * 2 + 0.35rem);
   }
 
   /* Auf Telefonen ist der Streifen zwischen Hero-Zeile und Wortmarke deutlich
      kürzer, das Panel aber schmaler und dadurch von Haus aus höher. Schrift
      und Innenrand werden entsprechend kleiner, damit oben und unten Luft
      bleibt; verankert ist es wie am Desktop. */
+  /* Auf Telefonen ist das Panel schon an seiner Maximalbreite
+     (100vw − Seitenränder), der Text braucht dort also die meisten Zeilen.
+     12px statt 13px holt die Höhe zurück, die die Ansprechpartner-Zeile
+     kostet — siehe die Anmerkung zum Streifen bei .panel--contact. */
   .panel--contact {
-    font-size: 13px;
+    font-size: 12px;
     padding-block: clamp(0.4rem, calc(11vh - 92px), 2.5rem);
   }
 
@@ -1589,8 +3064,33 @@ body.is-preload *::after {
     margin: -0.4rem 0;
   }
 
+  /* Dasselbe für das LinkedIn-Zeichen: die Marke ist knapp 11px groß und als
+     Tippziel zu klein. Die Fläche kommt als ::after RINGSUM gleich weit über
+     das Zeichen hinaus — sie bleibt also darauf zentriert und lässt Kasten,
+     Zeilenhöhe und Wortabstand unberührt. Ohne Zeiger gibt es keinen Cursor,
+     der die größere Fläche verraten könnte. */
+  .contact__social::after {
+    content: "";
+    position: absolute;
+    /* 0,35rem = 5,6px: schmaler als der Abstand zum Wort davor (6,76px). Die
+       Fläche bleibt damit auf dem Zeichen und greift nicht in den Namen. */
+    inset: -0.35rem;
+  }
+
   .about {
     -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* --- Flache Fenster: Countdown ohne Vergrößerung -----------------------
+   Die Countdown-Spalte ist nur so hoch wie das Hochformat neben ihr. Wird
+   das Fenster flacher, reicht die Höhe für den um ein Drittel größeren Satz
+   nicht mehr, und die untere Kachelreihe liefe unter die Bildkante. Ab hier
+   gilt deshalb wieder der ungestreckte Satz; die Abstände oben und unten
+   bleiben dabei durch align-content: space-between weiter gleich groß. */
+@media (max-height: 640px) {
+  .countdown {
+    --countdown-scale: 1;
   }
 }
 
@@ -1623,7 +3123,8 @@ body.is-preload *::after {
 
   .story:not(.is-revealed) .story__media,
   .story:not(.is-revealed) .story__text,
-  .story:not(.is-revealed) .story__caption {
+  .story:not(.is-revealed) .story__caption,
+  .story:not(.is-revealed) .countdown {
     filter: none;
     opacity: 1;
   }

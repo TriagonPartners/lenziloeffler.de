@@ -81,9 +81,20 @@ fi
 
 ORIGIN="$BUCKET.s3.$REGION.amazonaws.com"
 
+# Erst über den Alias suchen, dann über den Kommentar. Der zweite Weg findet
+# auch eine Verteilung, die noch OHNE eigene Domain läuft — solange kein
+# Zertifikat vorliegt, trägt sie nur das CloudFront-Standardzertifikat und
+# hat deshalb keinen Alias. Ohne diesen Rückfall entstünde beim nächsten Lauf
+# eine zweite Verteilung auf denselben Bucket.
 DIST_ID=$(aws cloudfront list-distributions \
   --query "DistributionList.Items[?Aliases.Items && contains(Aliases.Items, '$DOMAIN')].Id | [0]" \
   --output text 2>/dev/null || echo "None")
+
+if [ "$DIST_ID" = "None" ] || [ -z "$DIST_ID" ]; then
+  DIST_ID=$(aws cloudfront list-distributions \
+    --query "DistributionList.Items[?Comment=='$DOMAIN'].Id | [0]" \
+    --output text 2>/dev/null || echo "None")
+fi
 
 if [ "$DIST_ID" != "None" ] && [ -n "$DIST_ID" ]; then
   echo "3/4  Verteilung $DIST_ID existiert bereits."
@@ -102,8 +113,11 @@ else
   # Ordner-URLs (/impressum/) brauchen eine Function, die /index.html
   # anhängt — S3 als REST-Origin kann das im Gegensatz zum Website-Endpunkt
   # nicht selbst, und der Website-Endpunkt kann kein OAC.
+  # CloudFront-Function-Namen erlauben nur [a-zA-Z0-9-_] — der Punkt in der
+  # Domain ist nicht zulaessig, deshalb die Domain mit Bindestrichen.
+  FN_NAME="rewrite-index-${DOMAIN//./-}"
   FN_ARN=$(aws cloudfront list-functions \
-    --query "FunctionList.Items[?Name=='rewrite-index-$DOMAIN'].FunctionMetadata.FunctionARN | [0]" \
+    --query "FunctionList.Items[?Name=='$FN_NAME'].FunctionMetadata.FunctionARN | [0]" \
     --output text 2>/dev/null || echo "None")
   if [ "$FN_ARN" = "None" ] || [ -z "$FN_ARN" ]; then
     cat > /tmp/rewrite-index.js <<'JS'
@@ -119,12 +133,12 @@ function handler(event) {
 }
 JS
     FN_ETAG=$(aws cloudfront create-function \
-      --name "rewrite-index-$DOMAIN" \
+      --name "$FN_NAME" \
       --function-config "Comment=Ordner-URLs auf index.html,Runtime=cloudfront-js-2.0" \
       --function-code fileb:///tmp/rewrite-index.js \
       --query ETag --output text)
-    aws cloudfront publish-function --name "rewrite-index-$DOMAIN" --if-match "$FN_ETAG" >/dev/null
-    FN_ARN=$(aws cloudfront describe-function --name "rewrite-index-$DOMAIN" \
+    aws cloudfront publish-function --name "$FN_NAME" --if-match "$FN_ETAG" >/dev/null
+    FN_ARN=$(aws cloudfront describe-function --name "$FN_NAME" \
       --query FunctionSummary.FunctionMetadata.FunctionARN --output text)
   fi
 

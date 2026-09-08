@@ -38,8 +38,7 @@
       <div class="action-wrap" data-panel-trigger>
         <span class="action-shell">
           <button class="action action--about" type="button" aria-expanded="false" aria-controls="panel-about">
-            <span class="icon icon--user" aria-hidden="true"></span>
-            <span class="sr-only">About Me</span>
+            <span class="action__label">Profile</span>
           </button>
         </span>
 
@@ -48,7 +47,7 @@
 
           <div class="about" data-about-scroller>
 
-            <!-- Kapitel 1–4 -->
+            <!-- Kapitel 1–3 -->
             <article class="story story--media-first story--caption-right" data-story>
               <div class="story__frame">
                 <figure class="story__figure">
@@ -57,32 +56,45 @@
                       <source media="(max-width: 820px)" srcset="/assets/images/about-me/user-1-mobile.avif" type="image/avif">
                       <source media="(max-width: 820px)" srcset="/assets/images/about-me/user-1-mobile.jpg" type="image/jpeg">
                       <source srcset="/assets/images/about-me/user-1.avif" type="image/avif">
+                      <!-- „bottom" hält die Unterkante des Fotos. Zusammen mit dem
+                           16:9-Kasten (siehe .story--media-first .story__media) bleibt
+                           damit das ganze Bild stehen; sollte der Kasten auf sehr
+                           flachen Fenstern doch flacher werden, wird oben
+                           abgeschnitten und die Unterkante bleibt. -->
                       <img src="/assets/images/about-me/user-1.jpg" alt="Formula 3 field on track at Imola"
-                           width="1600" height="900" decoding="async">
+                           width="1600" height="900" decoding="async"
+                           style="object-position: center bottom">
                     </picture>
                   </div>
-                  <figcaption class="story__caption">Autodromo Internazionale Enzo e Dino Ferrari · Imola · April 25, 2026</figcaption>
+                  <figcaption class="story__caption">Autodromo Internazionale Enzo e Dino Ferrari · Imola · April 25, 2026 | © Conny Milchram</figcaption>
                 </figure>
                 <div class="story__text">
                   <h2 class="story__title">Formula 3 at Sixteen</h2>
                   <p class="story__body">
-                    Nicolas &bdquo;Lenzi&ldquo; Loeffler, 16, competes in a Dallara F312 under number 91 across Formula 3 series in Austria, Italy and the FIA Central European Zone. In his debut season, he currently leads four championship standings in his class.
+                    Nicolas &bdquo;Lenzi&ldquo; Loeffler, 16, competes in a Dallara F312 under number 91 in national and regional Formula 3 competition across Austria, Italy and the FIA Central European Zone. In his debut season at this level, he currently leads four class standings.
                   </p>
                   <p class="story__body">
-                    With the season entering its final stages, he has competed in five of ten race weekends, recording ten class wins, two outright podiums and fastest laps in more than half of his races &mdash; underlining his consistent pace alongside school in Munich.
+                    With the season entering its final stages, he has competed in five of ten race weekends, recording ten class wins, two outright podiums and fastest laps in five of his ten races &mdash; a record that reflects both consistent pace and steady development across the year.
                   </p>
-                              </div>
+                  <p class="story__body">
+                    His path into single-seaters began at eleven. After initial Formula car experience and structured testing in Formula Renault machinery, 2025 marked his first full season of racing in the Drexler Formula Cup. The move into the Dallara F312 followed in 2026, bringing more power, downforce and technical complexity, and providing the next step in his progression as a driver.
+                  </p>
+                </div>
+              </div>
             </article>
 
             <article class="story story--caption-left" data-story>
               <div class="story__frame">
                 <div class="story__text">
-                  <h2 class="story__title">From a Kart at Six to a Dallara at Eleven</h2>
+                  <h2 class="story__title">Monza: A Key Moment</h2>
                   <p class="story__body">
-                    Karting at six. First Dallara at eleven. First timed formula race in 2023, second in the Formula Predator final in 2024, first full formula season in 2025.
+                    An opening-round victory at the Red Bull Ring, followed by a pole-to-win performance at Imola, provided early evidence that the pace could be repeated across different circuits and conditions.
                   </p>
                   <p class="story__body">
-                    Every step added around fifty horsepower. Formula 3 was the next one &mdash; not a jump.
+                    Technical issues around the Grobnik round then prompted a reassessment of the season approach. The response was to strengthen the technical and team environment, sharpen preparation and place greater emphasis on the structures needed for continued improvement.
+                  </p>
+                  <p class="story__body">
+                    A first commercial partnership helped make the Monza round possible, where the strengthened technical and team setup provided the platform to build on the pace already demonstrated earlier in the season.
                   </p>
                 </div>
                 <figure class="story__figure">
@@ -95,20 +107,23 @@
                            width="1600" height="900" decoding="async">
                     </picture>
                   </div>
-                  <figcaption class="story__caption">Autodromo Nazionale Monza · Monza · August 1, 2026</figcaption>
+                  <figcaption class="story__caption">Autodromo Nazionale Monza · Monza · August 1, 2026 | © Manuel Beck</figcaption>
                 </figure>
               </div>
             </article>
 
-            <article class="story story--split story--caption-right" data-story>
+            <article class="story story--split story--half story--caption-right" data-story>
               <div class="story__frame">
                 <div class="story__text">
                   <h2 class="story__title">The Car, the Team, the Craft</h2>
                   <p class="story__body">
-                    Dallara F312 with Mercedes AMG power: 245 hp on 460 kilograms, sequential six-speed paddle shift, 260 km/h. The generation Verstappen raced at sixteen.
+                    Nicolas has raced the Dallara F312 throughout 2026: 245 hp at 460 kilograms, sequential six-speed paddle shift and speeds of up to 260 km/h &mdash; a generation of Formula 3 machinery also raced by Max Verstappen at sixteen.
                   </p>
                   <p class="story__body">
-                    With Franz W&ouml;ss Racing since Monza, in the colours of the ADAC Junior Team S&uuml;dbayern.
+                    With Franz W&ouml;ss Racing from Monza onward, he recorded three class wins and one second place across the parallel Austria Formel Cup and TopJet F2000 classifications, taking the lead in both standings.
+                  </p>
+                  <p class="story__body">
+                    At the Slovakia Ring, he carried that momentum forward with a charge from the pit lane to third overall, alongside class victories in both the Austria Formel Cup and FIA Central European Zone D2F3. Brno in September and the season finale at Mugello in October now provide the final two opportunities to build on that progress and close out his first year in Formula 3 machinery on a strong trajectory.
                   </p>
                 </div>
                 <figure class="story__figure">
@@ -119,31 +134,7 @@
                            width="904" height="1130" decoding="async">
                     </picture>
                   </div>
-                  <figcaption class="story__caption">Slovakia Ring · Orechová Potôň · August 23, 2026</figcaption>
-                </figure>
-              </div>
-            </article>
-
-            <article class="story story--split story--media-left story--caption-left" data-story>
-              <div class="story__frame">
-                <div class="story__text">
-                  <h2 class="story__title">Where the Season Stands</h2>
-                  <p class="story__body">
-                    Leading the Austria Formel Cup (179 pts), the TopJet F2000 Italian Trophy (158), the Austrian Racing Car Championship (136) and the FIA Central European Zone D2F3.
-                  </p>
-                  <p class="story__body">
-                    Next up: F4 Spanish Championship, F4 German Championship, Eurocup-3 &mdash; the route towards FIA Super Licence points.
-                  </p>
-                </div>
-                <figure class="story__figure">
-                  <div class="story__media">
-                    <picture>
-                      <source srcset="/assets/images/about-me/user-4.avif" type="image/avif">
-                      <img src="/assets/images/about-me/user-4.jpg" alt="Nicolas Lenzi Loeffler with the trophy on the podium"
-                           width="904" height="1130" decoding="async">
-                    </picture>
-                  </div>
-                  <figcaption class="story__caption">Slovakia Ring · Orechová Potôň · August 23, 2026</figcaption>
+                  <figcaption class="story__caption">Slovakia Ring · Orechová Potôň · August 23, 2026 | © Karina Kralikova</figcaption>
                 </figure>
               </div>
             </article>
@@ -156,8 +147,7 @@
       <div class="action-wrap" data-panel-trigger>
         <span class="action-shell">
           <button class="action action--racing" type="button" aria-expanded="false" aria-controls="panel-racing">
-            <span class="icon icon--racing"></span>
-            <span class="sr-only">Racing</span>
+            <span class="action__label">Racing</span>
           </button>
         </span>
 
@@ -169,102 +159,251 @@
 
           <div class="about" data-about-scroller>
 
-            <article class="story story--media-first story--caption-right" data-story>
+            <!-- Kapitel 1 ist der Racing-Hero: Streckenverlauf, Rennwochenende
+                 und Countdown, mittig und über die volle Kapitelfläche. Kein
+                 Bild daneben — die Aufmerksamkeit soll auf dem nächsten
+                 Renneinsatz liegen, Porträts trägt das Profile-Pop-up. -->
+            <article class="story story--racing-hero" data-story>
               <div class="story__frame">
-                <figure class="story__figure">
-                  <div class="story__media">
-                    <picture>
-                      <source media="(max-width: 820px)" srcset="/assets/images/racing/race-1-mobile.avif" type="image/avif">
-                      <source media="(max-width: 820px)" srcset="/assets/images/racing/race-1-mobile.jpg" type="image/jpeg">
-                      <source srcset="/assets/images/racing/race-1.avif" type="image/avif">
-                      <img src="/assets/images/racing/race-1.jpg" alt="Empty main straight before the session"
-                           width="1600" height="900" decoding="async">
-                    </picture>
-                  </div>
-                  <figcaption class="story__caption">Autodromo Nazionale Monza · Monza · August 1, 2026</figcaption>
-                </figure>
                 <div class="story__text">
-                  <h2 class="story__title">Season 2026 &mdash; Four Championships, One Car</h2>
-                  <p class="story__body">
-                    One car, one entry, four championships &mdash; every weekend scores in all of them. After five of ten weekends he leads all four.
-                  </p>
-                  <p class="story__body">
-                    Grids of up to thirty cars across several car generations. Ten class wins, two podiums in the outright field.
-                  </p>
+                  <div class="countdown" data-countdown="2026-09-12T12:45:00+02:00">
+                    <!-- Streckenverlauf aus dem Pre-Event-Blatt von Franz Wöss
+                         Racing. Die Vorlage zeichnet die Strecke als Korridor aus
+                         zwei Linien; hier läuft die MITTELLINIE dieses Korridors
+                         als eine einzige, durchgehende Kurve — kein Bild, keine
+                         getracte Polylinie, keine zweite Farbe.
+
+                         Der Verlauf steht inline und nicht als <img>: nur so
+                         erreicht das Stylesheet die Linie und kann ihr das
+                         CDF-Hellgrau und DIE Strichstärke der Seite geben.
+                         vector-effect hält den Strich in jeder Größe auf genau
+                         diesem Maß. -->
+                    <svg class="countdown__track" viewBox="-0.58 -0.48 622.87 350.66"
+                         role="img" aria-label="Streckenverlauf des Automotodrom Brno"
+                         focusable="false">
+                      <path class="countdown__track-line"
+                            vector-effect="non-scaling-stroke"
+                            d="M254.9 344.7C249.004 345.245 238.9 345.401 230.9 345.5C222.8 345.601 214.8 345.4 206.8 345.2C198.8 345 190.7 344.6 182.7 344.4C174.7 344.2 166.6 344.05 158.6 344C150.6 343.95 142.5 344 134.5 344C126.5 344 118.5 343.9 110.4 343.9C102.4 343.9 94.4 343.75 86.3 343.8C78.3 343.849 70.3 344.05 62.2 344C54.2 343.951 44.097 343.846 38.2 343.4C32.196 342.946 29.191 342.134 26.4 341.4C23.491 340.635 22.778 340.035 21 338.9C19.177 337.736 17.151 336.351 15.3 334.5C13.449 332.649 11.423 330.185 10 328C8.622 325.885 7.655 324.016 6.8 321.6C5.956 319.215 5.355 316.795 5 313.4C4.654 310.094 4.553 304.804 4.8 301.5C5.054 298.104 5.714 295.504 6.4 293.3C7.114 291.004 7.922 289.513 8.9 287.9C9.923 286.214 10.974 284.676 12.5 283.1C13.976 281.576 16.185 279.778 18 278.6C19.885 277.377 21.305 276.716 23.4 276C25.405 275.315 25.2 274.905 30.4 274.4C35.5 273.905 47.395 273.656 54.4 272.8C61.295 271.957 65.419 271.56 72.1 269.4C78.72 267.26 86.9 263.2 94.2 259.9C101.5 256.6 108.728 253.06 116 249.6C123.229 246.16 130.409 242.62 137.7 239.1C144.909 235.619 152.08 232.06 159.3 228.5C166.48 224.96 173.7 221.4 180.9 217.8C188.1 214.2 195.19 210.58 202.4 206.9C209.49 203.281 217.5 199.4 223.8 195.9C230.1 192.4 236.8 188.3 240.2 185.9C243.6 183.5 243.123 182.916 244.1 181.5C245.124 180.016 245.774 178.69 246.3 177.3C246.872 175.789 247.293 174.299 247.5 172.7C247.694 171.199 247.756 169.596 247.6 168C247.453 166.494 247.2 165.1 246.6 163.4C246 161.7 245.264 160.023 244 158C242.764 156.022 242.6 155.3 238.8 151.5C235 147.7 225.15 139.05 221.2 135.1C217.25 131.15 216.623 129.785 215.2 127.6C213.822 125.485 213.269 123.911 212.7 122.2C212.171 120.609 211.997 119.3 211.9 117.6C211.797 115.8 211.856 113.611 212.2 111.7C212.558 109.71 213.243 107.618 213.9 106C214.543 104.417 215.024 103.419 216.2 101.9C217.425 100.319 217.075 99.971 221.1 96.6C225.076 93.271 233.824 86.832 240.2 82C246.624 77.132 253.082 72.376 259.5 67.6C265.982 62.776 272.406 57.908 278.8 53.2C285.306 48.409 291.758 43.644 298.2 38.9C304.659 34.143 311.14 29.357 317.7 24.7C324.241 20.057 332.5 14.2 337.6 11.1C342.7 8 345.717 6.943 348.3 5.9C350.918 4.843 351.2 5.103 353 5C354.7 4.903 357.101 4.994 358.9 5.2C360.601 5.395 362.007 5.782 363.5 6.4C364.907 6.983 366.3 7.7 367.6 8.6C368.9 9.5 369.975 10.42 371.1 11.8C372.176 13.12 373.241 13.98 374.5 16.7C375.741 19.381 377.353 22.312 378.8 27.9C380.253 33.512 382.649 45.493 383.3 50.2C383.949 54.893 383.148 54.409 382.8 56.1C382.448 57.811 381.8 59.1 381.1 60.5C380.4 61.9 379.402 63.202 378.4 64.3C377.302 65.502 376.392 66.387 374.8 67.4C373.091 68.487 372.809 68.819 368.5 70.8C364.109 72.819 352.71 77.32 348.6 79.4C344.61 81.419 345.3 81.9 344.1 83.1C342.8 84.4 342.016 85.609 341.3 86.9C340.518 88.31 339.854 89.785 339.4 91.3C338.954 92.787 338.847 94.401 338.8 95.9C338.75 97.502 338.948 99.088 339.3 100.6C339.647 102.09 340.219 103.591 340.9 105C341.62 106.49 342.4 107.8 343.4 109C344.4 110.2 345.375 111.332 346.8 112.4C348.177 113.432 349.926 114.539 351.9 115.4C353.827 116.241 353.592 116.749 358.7 117.6C363.792 118.449 374.6 119.8 382.6 120.6C390.6 121.4 399.799 122.25 406.6 122.4C413.399 122.55 419.793 121.845 423.3 121.4C426.893 120.944 426.409 120.516 427.7 119.8C429.11 119.018 430.4 118.1 431.5 117C432.6 115.9 433.518 114.61 434.3 113.2C435.016 111.909 435.512 110.403 435.9 108.9C436.312 107.303 436.647 107.498 436.5 104.2C436.348 100.797 435.2 92.2 435 88.6C434.8 85 435 84.4 435.3 82.7C435.6 81 436.059 79.582 436.7 78.2C437.359 76.78 438.3 75.5 439.3 74.3C440.3 73.1 441.483 71.977 442.7 71.1C443.983 70.175 445.393 69.283 446.8 68.7C448.293 68.082 449.798 67.591 451.3 67.3C452.898 66.99 454.501 66.853 456 66.9C457.602 66.95 458.987 67.147 460.7 67.6C462.388 68.047 461.878 67.238 466.3 69.7C470.679 72.138 480.114 77.877 486.9 82.2C493.614 86.477 500.315 90.877 507.1 95.3C513.815 99.677 520.5 104.2 527.2 108.6C533.9 113 540.623 117.365 547.3 121.8C554.023 126.265 560.662 130.758 567.4 135.1C574.163 139.458 581.085 143.623 587.7 148C594.385 152.423 603.476 158.432 607.6 161.6C611.676 164.731 611.2 165.1 612.5 166.8C613.8 168.5 614.6 170.2 615.3 172C616 173.8 616.393 175.601 616.7 177.8C616.993 179.901 617.096 182.6 616.9 184.9C616.696 187.3 616.086 190.095 615.5 191.9C614.885 193.795 614.277 194.883 613.4 196.1C612.475 197.383 611.478 198.674 610.3 199.7C609.179 200.676 607.8 201.6 606.4 202.3C605 203 603.691 203.552 602 203.9C600.289 204.252 601.1 204.9 596.1 204.6C591.1 204.3 580.105 203.056 572.1 202.2C564.205 201.356 556.2 200.5 548.2 199.6C540.2 198.7 530 197.197 524.3 196.8C518.5 196.397 516.095 196.845 513.5 197.1C510.994 197.347 510.4 197.9 509 198.5C507.6 199.1 506.219 199.924 505 200.9C503.72 201.925 502.625 203.017 501.7 204.3C500.823 205.517 500.041 206.976 499.5 208.4C498.938 209.878 498.6 210.8 498.4 213C498.2 215.2 498.4 217.2 498.4 221.4C498.4 225.6 498.797 234.6 498.6 238.1C498.397 241.7 497.921 241.211 497.2 242.6C496.52 243.91 495.5 245.2 494.4 246.2C493.3 247.2 492.106 247.916 490.5 248.5C488.806 249.117 489.601 249.306 484.7 249.9C479.701 250.506 468.696 251.35 460.7 252C452.696 252.65 444.704 253.35 436.7 253.9C428.703 254.45 420.604 254.75 412.6 255.3C404.603 255.85 396.604 256.55 388.6 257.1C380.603 257.65 372.604 258.053 364.6 258.6C356.503 259.153 348.504 259.65 340.5 260.2C332.503 260.75 322.996 261.156 316.5 261.8C309.895 262.455 304.409 263.537 301.1 264.3C297.908 265.036 298.2 265.5 296.9 266.4C295.6 267.3 294.43 268.323 293.5 269.5C292.531 270.725 291.641 272.118 291 273.5C290.341 274.92 289.8 276.3 289.5 278C289.2 279.7 288.75 278.903 289.1 283.9C289.45 288.904 291.197 302.1 291.6 307.9C291.997 313.6 291.647 316.094 291.4 318.6C291.145 321.195 290.683 321.693 290.1 323.1C289.482 324.593 289.146 325.356 287.7 327.2C286.244 329.057 283.5 332.3 281.3 334.3C279.1 336.3 276.891 337.783 274.5 339.1C271.99 340.482 270.014 341.346 266.7 342.3C263.413 343.246 260.904 344.145 254.9 344.7Z"/>
+                    </svg>
+                    <div class="countdown__head">
+                      <p class="countdown__label">Next race weekend</p>
+                      <p class="countdown__place">Brno
+                        <span class="countdown__flag" role="img" aria-label="Czech Republic">
+                          <svg viewBox="0 0 18 12" aria-hidden="true">
+                            <clipPath id="flag-cz"><rect width="18" height="12" rx="1.6"/></clipPath>
+                            <g clip-path="url(#flag-cz)">
+                              <rect width="18" height="6" fill="#fff"/>
+                              <rect y="6" width="18" height="6" fill="#d7141a"/>
+                              <path d="M0 0 9 6 0 12Z" fill="#11457e"/>
+                            </g>
+                          </svg>
+                        </span>
+                      </p>
+                      <p class="countdown__date">11&ndash;13 September 2026</p>
+                    </div>
+                    <div class="countdown__clock" data-countdown-clock hidden>
+                      <div class="countdown__tile">
+                        <span class="countdown__value" data-countdown-unit="days">00</span>
+                        <span class="countdown__unit">Days</span>
+                      </div>
+                      <div class="countdown__tile">
+                        <span class="countdown__value" data-countdown-unit="hours">00</span>
+                        <span class="countdown__unit">Hrs</span>
+                      </div>
+                      <div class="countdown__tile">
+                        <span class="countdown__value" data-countdown-unit="minutes">00</span>
+                        <span class="countdown__unit">Min</span>
+                      </div>
+                      <div class="countdown__tile">
+                        <span class="countdown__value" data-countdown-unit="seconds">00</span>
+                        <span class="countdown__unit">Sec</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </article>
 
-            <article class="story story--caption-left" data-story>
+            <article class="story story--split story--half story--caption-right story--imola" data-story>
               <div class="story__frame">
                 <div class="story__text">
-                  <h2 class="story__title">Monza &mdash; Nine Places on Sunday</h2>
-                  <p class="story__body">
-                    A qualifying defect put him fifteenth on a grid of 29. Nine places gained in race one, eight in race two, both class wins taken from the back.
+                  <h2 class="story__title">Standings &amp; Results</h2>
+
+                  <!-- Tabellenstand zuerst: die vier Führungen sind das
+                       Ergebnis, alles darunter der Weg dahin. Beide Blöcke
+                       liegen auf demselben Drittel-Raster und schliessen
+                       deshalb links und rechts exakt gleich ab. -->
+                  <ul class="standings">
+                    <li class="standings__row">
+                      <span class="standings__pos">P1</span>
+                      <span class="standings__name">Austria Formel Cup</span>
+                      <span class="standings__pts">179 Pts</span>
+                    </li>
+                    <li class="standings__row">
+                      <span class="standings__pos">P1</span>
+                      <span class="standings__name">TopJet F2000 Italian Trophy</span>
+                      <span class="standings__pts">158 Pts</span>
+                    </li>
+                    <li class="standings__row">
+                      <span class="standings__pos">P1</span>
+                      <span class="standings__name">Austrian Racing Car Championship</span>
+                      <span class="standings__pts">136 Pts</span>
+                    </li>
+                    <li class="standings__row">
+                      <span class="standings__pos">P1</span>
+                      <span class="standings__name">FIA Central European Zone D2F3</span>
+                      <span class="standings__pts">after 4/6</span>
+                    </li>
+                  </ul>
+
+                  <p class="results__footnote results__footnote--standings">
+                    *Official timing and results documents of the Austria Formel
+                    Cup, TopJet F2000 Italian Trophy and FIA CEZ D2F3 &middot; 2026
+                    season &middot; Points allocation according to the sporting
+                    regulations of the respective series.
                   </p>
-                  <p class="story__body">
-                    57 points, two fastest laps &mdash; and the mid-season switch to Franz W&ouml;ss Racing. His strongest weekend of the year.
+
+                  <table class="results">
+                    <caption class="sr-only">Race weekends of the 2026 season with class results in both championships</caption>
+                    <!-- Spaltenbreiten sind gerechnet, siehe .results__col-* im
+                         Stylesheet: Strecke, dann je Serie R1 / R2 / Pts. -->
+                    <colgroup>
+                      <col class="results__col-round">
+                      <col class="results__col-af-r1"><col class="results__col-af-r2"><col class="results__col-af-pts">
+                      <col class="results__col-tj-r1"><col class="results__col-tj-r2"><col class="results__col-tj-pts">
+                    </colgroup>
+                    <thead>
+                      <!-- „Round" steht eine Zeile tiefer, zwischen den beiden
+                           Trennlinien und damit auf der Zeilenhöhe von R1/R2/Pts.
+                           Die obere Zeile trägt nur noch die beiden Serientitel;
+                           ihre erste Zelle bleibt leer. -->
+                      <tr class="results__series">
+                        <td></td>
+                        <th scope="colgroup" colspan="3">Austria Formel Cup &middot; AF3-T</th>
+                        <th scope="colgroup" colspan="3">TopJet F2000 &middot; Gold</th>
+                      </tr>
+                      <tr class="results__subhead">
+                        <th scope="col" class="results__round-head">Round</th>
+                        <th scope="col">R1</th>
+                        <th scope="col">R2</th>
+                        <th scope="col" class="results__pts">Pts</th>
+                        <th scope="col">R1</th>
+                        <th scope="col">R2</th>
+                        <th scope="col" class="results__pts">Pts</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr class="results__row results__row--next">
+                        <th scope="row"><span class="results__place">Mugello</span><span class="results__date">16&ndash;18 Oct &middot; Season finale</span></th>
+                        <td class="results__note">Racing</td>
+                        <td></td>
+                        <td class="results__pts"></td>
+                        <td class="results__note">Racing</td>
+                        <td></td>
+                        <td class="results__pts"></td>
+                      </tr>
+                      <tr class="results__row results__row--next results__row--last-next">
+                        <th scope="row"><span class="results__place">Brno</span><span class="results__date">11&ndash;13 Sep</span></th>
+                        <td class="results__note">Racing</td>
+                        <td></td>
+                        <td class="results__pts"></td>
+                        <td class="results__note">Racing</td>
+                        <td></td>
+                        <td class="results__pts"></td>
+                      </tr>
+                      <tr class="results__row">
+                        <th scope="row"><span class="results__place">Slovakia Ring</span><span class="results__date">21&ndash;23 Aug</span></th>
+                        <td>P1</td>
+                        <td>P1</td>
+                        <td class="results__pts">50</td>
+                        <td class="results__none" colspan="3">no race</td>
+                      </tr>
+                      <tr class="results__row">
+                        <th scope="row"><span class="results__place">Monza</span><span class="results__date">31 Jul&ndash;2 Aug</span></th>
+                        <td>P2</td>
+                        <td>P1</td>
+                        <td class="results__pts">40</td>
+                        <td>P1</td>
+                        <td>P1</td>
+                        <td class="results__pts">57</td>
+                      </tr>
+                      <tr class="results__row">
+                        <th scope="row"><span class="results__place">Grobnik</span><span class="results__date">15&ndash;17 May</span></th>
+                        <td>P2</td>
+                        <td>DNF</td>
+                        <td class="results__pts">18</td>
+                        <td class="results__none" colspan="3">no race</td>
+                      </tr>
+                      <tr class="results__row">
+                        <th scope="row"><span class="results__place">Imola</span><span class="results__date">24&ndash;26 Apr</span></th>
+                        <td>P8<span class="results__mark">*</span></td>
+                        <td>P1</td>
+                        <td class="results__pts">28</td>
+                        <td>P5<span class="results__mark">*</span></td>
+                        <td>P1</td>
+                        <td class="results__pts">44</td>
+                      </tr>
+                      <tr class="results__row">
+                        <th scope="row"><span class="results__place">Red Bull Ring</span><span class="results__date">10&ndash;12 Apr</span></th>
+                        <td>P2</td>
+                        <td>P1</td>
+                        <td class="results__pts">43</td>
+                        <td>P1</td>
+                        <td>P1</td>
+                        <td class="results__pts">57</td>
+                      </tr>
+                    </tbody>
+                    <tfoot>
+                      <tr>
+                        <th scope="row">Total Points</th>
+                        <td colspan="2"></td>
+                        <td class="results__pts">179</td>
+                        <td colspan="2"></td>
+                        <td class="results__pts">158</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+
+                  <p class="results__footnote">
+                    *Technical issue.
                   </p>
                 </div>
                 <figure class="story__figure">
                   <div class="story__media">
                     <picture>
-                      <source media="(max-width: 820px)" srcset="/assets/images/racing/race-2-mobile.avif" type="image/avif">
-                      <source media="(max-width: 820px)" srcset="/assets/images/racing/race-2-mobile.jpg" type="image/jpeg">
                       <source srcset="/assets/images/racing/race-2.avif" type="image/avif">
-                      <img src="/assets/images/racing/race-2.jpg" alt="Formula 3 car of Nicolas Lenzi Loeffler in the pit lane"
-                           width="1600" height="900" decoding="async">
+                      <img src="/assets/images/racing/race-2.jpg" alt="Nicolas Lenzi Loeffler leading the Formula 3 field out of a corner at Imola"
+                           width="904" height="1130" decoding="async">
                     </picture>
                   </div>
-                  <figcaption class="story__caption">Autodromo Nazionale Monza · Monza · August 1, 2026</figcaption>
+                  <!-- Genau zwei Zeilen: Ort und Datum, darunter die Quelle. Der
+                       Umbruch steht im Markup, damit die Quelle nie allein in
+                       eine dritte Zeile rutscht. -->
+                  <figcaption class="story__caption story__caption--two-line">Autodromo Internazionale Enzo e Dino Ferrari · Imola · April 25, 2026<br><span class="story__credit">© Conny Milchram</span></figcaption>
                 </figure>
               </div>
             </article>
 
-            <article class="story story--split story--caption-right" data-story>
+            <article class="story story--split story--half story--media-left story--caption-left" data-story>
               <div class="story__frame">
                 <div class="story__text">
-                  <h2 class="story__title">Slovakia Ring &mdash; From the Pit Box to P3</h2>
+                  <h2 class="story__title">Building Towards 2027</h2>
                   <p class="story__body">
-                    Race one started from the pit lane. Eleven places later: third in the outright field, both class wins, fourth-fastest lap of the entire event.
+                    The immediate priority is to finish the 2026 season at the same level: maintain pace, deliver consistently across the final two race weekends and continue developing within the team, both technically and as a driver. The goal is to protect the current positions and extract the strongest possible performances through to the season finale.
                   </p>
                   <p class="story__body">
-                    50 points from the weekend. Across this run of the season: 34 positions gained in six races.
+                    That will provide the basis for the next stage of sporting development and the preparation for 2027. Potential routes include the established F4 Spanish Championship, the returning F4 German Championship on the DTM platform &mdash; last won in 2022 by Kimi Antonelli with PREMA Racing &mdash; and Eurocup-3 as possible next steps in the progression.
                   </p>
                 </div>
                 <figure class="story__figure">
                   <div class="story__media">
                     <picture>
                       <source srcset="/assets/images/racing/race-3.avif" type="image/avif">
-                      <img src="/assets/images/racing/race-3.jpg" alt="Nicolas Lenzi Loeffler putting on his helmet in the paddock"
+                      <img src="/assets/images/racing/race-3.jpg" alt="Nicolas Lenzi Loeffler on the podium with the winner&rsquo;s trophies"
                            width="904" height="1130" decoding="async">
                     </picture>
                   </div>
-                  <figcaption class="story__caption">Slovakia Ring · Orechová Potôň · August 23, 2026</figcaption>
-                </figure>
-              </div>
-            </article>
-
-            <article class="story story--split story--media-left story--caption-left" data-story>
-              <div class="story__frame">
-                <div class="story__text">
-                  <h2 class="story__title">The Step After 2026</h2>
-                  <p class="story__body">
-                    Three routes for 2027, all of them in conversation: F4 Spanish Championship with a &euro;500,000 development prize fund, F4 German Championship returning on the DTM platform, and Eurocup-3.
-                  </p>
-                  <p class="story__body">
-                    Team talks are under way &mdash; among others with MP Motorsport and TC Racing.
-                  </p>
-                </div>
-                <figure class="story__figure">
-                  <div class="story__media">
-                    <picture>
-                      <source srcset="/assets/images/racing/race-4.avif" type="image/avif">
-                      <img src="/assets/images/racing/race-4.jpg" alt="Team transporter of the F4 Spanish Championship and Eurocup 3 in the paddock"
-                           width="904" height="1130" decoding="async">
-                    </picture>
-                  </div>
-                  <figcaption class="story__caption">Paddock, Autodromo Nazionale Monza · Monza · August 1, 2026</figcaption>
+                  <figcaption class="story__caption">Slovakia Ring · Orechová Potôň · August 23, 2026 | © Karina Kralikova</figcaption>
                 </figure>
               </div>
             </article>
@@ -277,8 +416,7 @@
       <div class="action-wrap action-wrap--contact" data-panel-trigger>
         <span class="action-shell">
           <button class="action action--contact" type="button" aria-expanded="false" aria-controls="panel-contact">
-            <span class="icon icon--envelope" aria-hidden="true"></span>
-            <span class="sr-only">Contact</span>
+            <span class="action__label">Partnerships</span>
           </button>
         </span>
 
@@ -296,17 +434,25 @@
            (siehe .panel--contact). Der Button findet es über aria-controls. -->
       <div class="panel panel--contact" id="panel-contact" role="dialog" aria-label="Contact">
         <p class="contact__lead">
+          We are currently building a focused commercial partnership platform
+          around Nicolas&rsquo; racing programme, with opportunities spanning
+          brand visibility, media and content activation, and race-weekend
+          hospitality. The aim is to create partnerships that are
+          professionally structured, relevant to the partner and able to grow
+          with his sporting development.
+        </p>
+        <p class="contact__lead">
           If you&rsquo;re interested in supporting an ambitious young
           single-seater driver, we look forward to exploring long-term
           partnership opportunities that bring sporting ambition and business
           interests together.
         </p>
-        <p class="contact__line">
-          Email: <a href="mailto:partnerships@lenziloeffler.de">partnerships@lenziloeffler.de</a>
-        </p>
-        <p class="contact__line">
-          Phone: <a href="tel:+491602334747">+49.160.233.4747</a>
-        </p>
+        <!-- Kontaktblock als EINE Einheit. Das LinkedIn-Zeichen steht INNERHALB
+             der ersten Zeile, direkt hinter „Commercial Partnerships" — es
+             gehört zum Ansprechpartner, nicht zu Telefon und Mail. -->
+        <p class="contact__line contact__line--strong">For partnership enquiries, please get in touch with:</p>
+        <p class="contact__line contact__line--strong">Manuel Beck<a class="contact__social" href="https://www.linkedin.com/in/manuelbeck/" target="_blank" rel="noopener noreferrer"><span class="icon icon--linkedin" aria-hidden="true"></span><span class="sr-only">LinkedIn-Profil von Manuel Beck (öffnet in neuem Tab)</span></a></p>
+        <p class="contact__line">Phone: <a href="tel:+491602334747">+49.160.233.4747</a> &middot; Email: <a href="mailto:partnerships@lenziloeffler.de">partnerships@lenziloeffler.de</a></p>
       </div>
     </div>
   </main>

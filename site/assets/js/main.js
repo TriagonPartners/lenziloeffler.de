@@ -21,6 +21,21 @@
  *    Jedes Kapitel deckt sein Medium auf, sobald es in den sichtbaren Bereich
  *    des Overlays läuft: die Weichzeichnung löst sich, der Text zieht nach.
  *    Beim Schließen wird zurückgesetzt, damit die Sequenz erneut abläuft.
+ *
+ * 3) Countdown auf das nächste Rennwochenende
+ *    Der Zielzeitpunkt steht als ISO-Zeitstempel mit Zeitzone im Markup
+ *    (data-countdown), die Ziffern setzt diese Datei. Die Kacheln sind im
+ *    Markup mit [hidden] versehen und werden erst hier eingeschaltet: ohne
+ *    JavaScript stünde sonst eine Reihe Nullen. Ort und Datum stehen als
+ *    Text im Markup und bleiben in jedem Fall lesbar.
+ *
+ * 4) Umrandungen — die Kontur der drei Schaltflächen und der
+ *    Countdown-Kacheln wird hier gerechnet und als SVG-Pfad gezeichnet.
+ *    Grund: eine per skewX() gescherte CSS-Umrandung ist an den 45°-Kanten
+ *    nur 0,71× und im gerundeten Eck 1,41× so dick wie oben und unten — ein
+ *    Faktor 2 zwischen dünnster und dickster Stelle. Ein Strich auf einem
+ *    Pfad ist dagegen überall gleich dick. Ausführlich bei .frame im
+ *    Stylesheet. Ohne JavaScript bleibt die gescherte Umrandung stehen.
  */
 (function () {
   'use strict';
@@ -92,10 +107,23 @@
         }, OPEN_DELAY);
       });
 
-      // Der Wrapper umfasst Button und Panel — dieses Ereignis feuert also
-      // erst, wenn der Zeiger beides verlassen hat. Ohne Verzögerung: das
-      // Verlassen beendet die Interaktion endgültig.
-      item.wrap.addEventListener('mouseleave', function () {
+      // Der Wrapper umfasst Button UND Panel — aber nur bei den beiden
+      // Story-Panels. Das Partnerships-Panel steht im Logo-Slot, damit es
+      // sich zwischen Hero-Zeile und Wortmarke einpassen kann, und liegt
+      // damit AUSSERHALB des Wrappers. Ohne die Prüfung auf relatedTarget
+      // schloss es deshalb in dem Moment, in dem der Zeiger den Button
+      // verliess, um zum Panel zu wandern — und der Weg dorthin führt über
+      // das Panel selbst, das dabei wieder verschwand: das Auf und Zu, das
+      // beim Partnerships-Button zu sehen war.
+      item.wrap.addEventListener('mouseleave', function (event) {
+        if (item.panel.contains(event.relatedTarget)) return;
+        close(item);
+      });
+
+      // Und das Gegenstück: verlässt der Zeiger das Panel, ohne auf dem
+      // Button zu landen, ist die Interaktion beendet.
+      item.panel.addEventListener('mouseleave', function (event) {
+        if (item.wrap.contains(event.relatedTarget)) return;
         close(item);
       });
     }
@@ -241,4 +269,206 @@
     }
     });
   });
+
+  /* --- Countdown ------------------------------------------------------- */
+
+  function pad(n) {
+    return (n < 10 ? '0' : '') + n;
+  }
+
+  Array.prototype.slice.call(document.querySelectorAll('[data-countdown]'))
+    .forEach(function (root) {
+      var target = Date.parse(root.getAttribute('data-countdown'));
+      var clock = root.querySelector('[data-countdown-clock]');
+      if (!clock || isNaN(target)) return;
+
+      var timer = null;
+      var fields = {};
+      Array.prototype.slice.call(clock.querySelectorAll('[data-countdown-unit]'))
+        .forEach(function (el) {
+          fields[el.getAttribute('data-countdown-unit')] = el;
+        });
+
+      function tick() {
+        var left = target - Date.now();
+
+        // Ist der Termin durch, verschwinden die Kacheln wieder. Ort und
+        // Datum bleiben stehen, bis im Markup das nächste Ziel eingetragen
+        // wird — besser als ein Zähler, der ins Negative läuft.
+        if (left <= 0) {
+          clock.hidden = true;
+          if (timer) timer = window.clearInterval(timer) || null;
+          done = true;
+          return;
+        }
+
+        var s = Math.floor(left / 1000);
+        set('days', Math.floor(s / 86400));
+        set('hours', Math.floor(s / 3600) % 24);
+        set('minutes', Math.floor(s / 60) % 60);
+        set('seconds', s % 60);
+        clock.hidden = false;
+      }
+
+      function set(unit, value) {
+        var el = fields[unit];
+        if (!el) return;
+        var text = pad(value);
+        // Nur schreiben, wenn sich etwas geändert hat: das hält den
+        // Sekundentakt aus dem Layout heraus.
+        if (el.textContent !== text) el.textContent = text;
+      }
+
+      // done verhindert, dass bei einem bereits vergangenen Termin überhaupt
+      // ein Intervall anläuft — clearInterval(null) wäre hier zu spät.
+      var done = false;
+      tick();
+      if (!done) timer = window.setInterval(tick, 1000);
+    });
+
+  /* --- Umrandungen ----------------------------------------------------- */
+  /* Gezeichnet wird das i-Pünktchen der Wortmarke: ein Parallelogramm mit
+     waagerechter Ober- und Unterkante, um --slant-tan geneigten Seiten und
+     einem Kreisbogen auf den beiden STUMPFEN Ecken (oben links, unten
+     rechts). Die spitzen bleiben scharf.
+
+     Alle Maße kommen aus dem Stylesheet, keines steht hier doppelt:
+     --slant-tan die Neigung, --action-frame-chord die Sehne der Rundung,
+     stroke-width die Strichstärke. */
+
+  var SVG_NS = 'http://www.w3.org/2000/svg';
+
+  function unit(a, b) {
+    var dx = b[0] - a[0];
+    var dy = b[1] - a[1];
+    var n = Math.sqrt(dx * dx + dy * dy);
+    return n ? [dx / n, dy / n] : [0, 0];
+  }
+
+  function along(p, u, k) {
+    return [p[0] + u[0] * k, p[1] + u[1] * k];
+  }
+
+  function xy(p) {
+    return p[0].toFixed(2) + ' ' + p[1].toFixed(2);
+  }
+
+  /**
+   * @param w  Breite des Kastens in px (er umfasst den 45°-Überhang schon)
+   * @param h  Höhe des Kastens in px
+   * @param sw Strichstärke in px
+   * @param t  tan des Neigungswinkels gegen die Senkrechte
+   * @param cr Sehne der Eckrundung als Anteil der Höhe
+   */
+  function frameGeometry(w, h, sw, t, cr) {
+    // Der Strich sitzt mittig auf dem Pfad. Damit er innerhalb des Kastens
+    // bleibt, liegt der Pfad um die halbe Strichstärke SENKRECHT nach innen:
+    // oben und unten sind das d, an den geneigten Seiten waagerecht
+    // d · sec(Winkel) — sonst wäre der Versatz dort zu klein.
+    var d = sw / 2;
+    var sec = Math.sqrt(1 + t * t);
+    var xs = d * sec;
+    var yTop = d;
+    var yBot = h - d;
+
+    // Die Eckpunkte des Parallelogramms. Die linke Kante läuft auf
+    // x = t · (h − y), die rechte auf x = w − t · y; beide um xs nach innen.
+    var TL = [t * (h - d) + xs, yTop];
+    var TR = [w - t * d - xs, yTop];
+    var BR = [w - t * (h - d) - xs, yBot];
+    var BL = [t * d + xs, yBot];
+
+    var uTLtoTR = unit(TL, TR);
+    var uTLtoBL = unit(TL, BL);
+    var uBRtoBL = unit(BR, BL);
+    var uBRtoTR = unit(BR, TR);
+
+    // Öffnungswinkel der stumpfen Ecke: der Richtungswechsel zwischen
+    // geneigter und waagerechter Kante, also 180° − 135,1° = 44,9°.
+    var phi = Math.acos(Math.min(1, Math.max(-1, t / sec)));
+    var R = (cr * h) / (2 * Math.sin(phi / 2));
+    var L = R * Math.tan(phi / 2);
+
+    // Auf sehr flachen oder sehr schmalen Kästen darf die Rundung die Kante
+    // nicht überlaufen.
+    var topLen = Math.sqrt(Math.pow(TR[0] - TL[0], 2) + Math.pow(TR[1] - TL[1], 2));
+    var sideLen = Math.sqrt(Math.pow(BL[0] - TL[0], 2) + Math.pow(BL[1] - TL[1], 2));
+    var maxL = Math.min(topLen, sideLen) / 2;
+    if (L > maxL && L > 0) {
+      R = R * (maxL / L);
+      L = maxL;
+    }
+
+    // Umlauf TL → TR → BR → BL, im Uhrzeigersinn (y zeigt nach unten),
+    // deshalb sweep-flag 1 auf beiden Bögen.
+    var startTL = along(TL, uTLtoTR, L);
+    return 'M' + xy(startTL) +
+           'L' + xy(TR) +
+           'L' + xy(along(BR, uBRtoTR, L)) +
+           'A' + R.toFixed(2) + ' ' + R.toFixed(2) + ' 0 0 1 ' + xy(along(BR, uBRtoBL, L)) +
+           'L' + xy(BL) +
+           'L' + xy(along(TL, uTLtoBL, L)) +
+           'A' + R.toFixed(2) + ' ' + R.toFixed(2) + ' 0 0 1 ' + xy(startTL) +
+           'Z';
+  }
+
+  var frames = Array.prototype.slice.call(
+    document.querySelectorAll('.action, .countdown__tile')
+  ).map(function (host) {
+    // Kein viewBox: eine Nutzereinheit ist damit ein CSS-Pixel, die
+    // gerechneten Maße gehen unverändert in den Pfad.
+    var svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('class', 'frame');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('focusable', 'false');
+    var shape = document.createElementNS(SVG_NS, 'path');
+    shape.setAttribute('class', 'frame__shape');
+    svg.appendChild(shape);
+    host.insertBefore(svg, host.firstChild);
+    return { host: host, svg: svg, shape: shape, key: '' };
+  });
+
+  function paintFrame(frame) {
+    var box = frame.svg.getBoundingClientRect();
+    if (!box.width || !box.height) return;
+
+    var own = window.getComputedStyle(frame.host);
+    var t = parseFloat(own.getPropertyValue('--slant-tan')) || 1;
+    var cr = parseFloat(own.getPropertyValue('--action-frame-chord')) || 0.438;
+    var sw = parseFloat(window.getComputedStyle(frame.shape).strokeWidth) || 1;
+
+    // Nur neu schreiben, wenn sich wirklich etwas geändert hat.
+    var key = [box.width, box.height, sw, t, cr].join('|');
+    if (key === frame.key) return;
+    frame.key = key;
+
+    frame.shape.setAttribute('d', frameGeometry(box.width, box.height, sw, t, cr));
+  }
+
+  function paintFrames() {
+    frames.forEach(paintFrame);
+  }
+
+  if (frames.length) {
+    paintFrames();
+
+    if ('ResizeObserver' in window) {
+      var ro = new ResizeObserver(function (entries) {
+        entries.forEach(function (entry) {
+          var frame = frames.filter(function (f) { return f.svg === entry.target; })[0];
+          if (frame) paintFrame(frame);
+        });
+      });
+      frames.forEach(function (frame) {
+        ro.observe(frame.svg);
+      });
+    } else {
+      window.addEventListener('resize', paintFrames);
+    }
+
+    // Die Kachelreihe steht im Markup auf [hidden] und hätte dann keine Maße.
+    // Der Countdown weiter oben schaltet sie noch vor diesem Abschnitt ein,
+    // der erste Durchgang trifft sie also schon. Ist der Termin durch,
+    // bleibt sie verborgen — dann gibt es auch nichts zu zeichnen.
+  }
 })();
