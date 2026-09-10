@@ -1558,6 +1558,72 @@ body.is-preload *::after {
   display: none;
 }
 
+/* --- Sichtbare Scrollleiste in den Pop-ups -----------------------------
+   Die nativen Leisten bleiben aus: bei .about oben ausgeblendet, im
+   Contact-Panel waren sie ohnehin nie zu sehen. An ihrer Stelle haengt
+   main.js in jedes der drei Pop-ups diese eigene Leiste ein. Sie ist reine
+   Anzeige — dass unterhalb noch Inhalt liegt — und ersetzt kein Scrollen.
+
+   Warum nicht die native Leiste gestalten: sobald ::-webkit-scrollbar eine
+   Breite bekommt, ist sie keine Overlay-Leiste mehr und BELEGT Layoutbreite.
+   Der Inhalt aller Pop-ups wuerde um ihre Breite schmaler — und damit auch
+   --content-w und jedes Mass, das daraus faellt. Diese Leiste liegt statt
+   dessen UEBER dem Inhalt und nimmt keinen Platz weg.
+
+   pointer-events: none haelt sie vollstaendig aus jeder Interaktion heraus:
+   Rad, Trackpad und Touch scrollen unveraendert, die Leiste zeigt nur an,
+   wo man steht. Ziehen laesst sie sich deshalb bewusst nicht. */
+.panel__scroll {
+  /* Derselbe Randabstand, den auch .panel__close nach oben und rechts haelt
+     — die Leiste laeuft dadurch rechtsbuendig mit dem Schliesskreuz. */
+  --panel-scroll-edge: clamp(0.5rem, 1.5vw, 0.9rem);
+  position: absolute;
+  top: var(--panel-scroll-edge);
+  right: var(--panel-scroll-edge);
+  bottom: var(--panel-scroll-edge);
+  z-index: 1;
+  width: 3px;
+  pointer-events: none;
+
+  /* Im Ruhezustand unsichtbar. Sichtbar wird die Leiste nur, solange
+     tatsaechlich gescrollt wird — main.js setzt dafuer .is-scrolling und
+     nimmt es nach kurzer Ruhe wieder weg. Ausgeblendet wird etwas
+     gemaechlicher als eingeblendet, damit das Verschwinden nicht abreisst.
+     Der Daumen behaelt dabei seine eigene Deckkraft; beide multiplizieren
+     sich, sichtbar sind also weiterhin die 0,32. */
+  opacity: 0;
+  transition: opacity 260ms var(--ease-soft);
+}
+
+.panel__scroll.is-scrolling {
+  opacity: 1;
+  /* Beim Auftauchen praktisch sofort da. */
+  transition-duration: 120ms;
+}
+
+/* Profile und Racing tragen oben rechts den Close-Button (2rem hoch, mit
+   ebendiesem Randabstand). Die Leiste setzt darunter an, damit sie ihn nicht
+   kreuzt. Das Contact-Panel hat keinen und braucht den Versatz nicht. */
+.panel--story .panel__scroll {
+  top: calc(var(--panel-scroll-edge) * 2 + 2rem);
+}
+
+.panel__scroll[hidden] {
+  display: none;
+}
+
+/* Nur der Daumen ist sichtbar — eine Trackflaeche gibt es bewusst nicht.
+   Farbe ist das CDF-Hellgrau der Pop-up-Texte, deutlich zurueckgenommen:
+   ein Hinweis, kein Bedienelement. Hoehe und Position setzt main.js. */
+.panel__scroll-thumb {
+  position: absolute;
+  right: 0;
+  left: 0;
+  border-radius: 999px;
+  background-color: var(--color-light);
+  opacity: 0.32;
+}
+
 /* Kapitel wachsen mit ihrem Inhalt, sie werden nicht mehr auf Overlay-Höhe
    gestreckt. Mit den kurzen Texten blieben sonst große Leerflächen stehen.
 
@@ -1806,6 +1872,69 @@ body.is-preload *::after {
   height: auto;
   aspect-ratio: 16 / 9;
   max-height: var(--split-media-max-h);
+}
+
+/* Der Kasten richtet sich nach dem Video, nicht umgekehrt.
+
+   .story--media-first deckelt die Hoehe mit --split-media-max-h. Beim Foto
+   ist das gewollt: es darf oben anschneiden. Beim Video kippt genau dieser
+   Deckel das Seitenverhaeltnis — auf flachen Fenstern wurde aus dem
+   16:9-Kasten ein Streifen von bis zu 5,4:1, und object-fit: cover schnitt
+   dafuer bis zu zwei Drittel der Bildhoehe weg. Gemessen bei 1280x300:
+   709x132 statt 709x399.
+
+   Ohne Deckel folgt die Hoehe immer der Breite ueber die aspect-ratio, das
+   Bild bleibt vollstaendig und unverzerrt. Auf sehr flachen Fenstern wird
+   das Kapitel dadurch hoeher als der Ausschnitt — das faengt der Scroller
+   des Pop-ups ab, so wie bei jedem anderen langen Kapitel auch. Bei
+   normalen Fensterhoehen aendert die Regel nichts: dort hat der Deckel nie
+   gegriffen. */
+.story--racing-video .story__media {
+  max-height: none;
+
+  /* Der einzige grossflaechige Hintergrund hinter dem Video ist der des
+     Pop-ups. Der Kasten bringt keinen eigenen mehr mit, damit hier nichts
+     als zusaetzliche Flaeche gelesen werden kann. */
+  background-color: transparent;
+}
+
+/* Von der Aufnahme darf nichts wegfallen.
+
+   Der Clip bringt seinen eigenen dunkelblauen Rahmen mit — er gehoert zur
+   Komposition, das Logo-Outro am Ende steht darauf. Beschnitten werden darf
+   deshalb nur dieser Rahmen, nie die Aufnahme darin: Das TopJet-Wasserzeichen
+   sitzt bei x 1557-1588 und hat zur Bildkante bei x 1600 nur zwoelf Pixel
+   Luft. Wie weit gezoomt werden darf, steht am --media-zoom unten.
+
+   contain statt des geerbten cover: Kasten und Frame sind beide 16:9, beide
+   zeigen also dasselbe Bild. cover wuerde aber bei jeder Rundung im
+   Kastenmass die Ueberlaenge abschneiden — contain kann das grundsaetzlich
+   nicht und laesst im Zweifel lieber einen Sub-Pixel-Streifen des
+   Kastenhintergrunds stehen, der ohnehin dieselbe Farbe traegt. Skaliert
+   wird gleichmaessig, das Seitenverhaeltnis bleibt exakt erhalten. */
+.story--racing-video .story__media video {
+  object-fit: contain;
+
+  /* Warum das Bild vorher so klein wirkte: Der Clip ist 1920x1080, die
+     Aufnahme darin aber nur 1280x720, mittig auf einem dunkelblauen Rahmen
+     (cropdetect: 1280:720:320:180). Der Kasten stand also bereits auf voller
+     Kapitelbreite — zwei Drittel davon waren Rahmen, ein Drittel Luft.
+
+     1,45 holt die Aufnahme auf 96,7 % der Kastenbreite. Weggeschnitten
+     werden dabei 298 von 320 Rahmenpixeln je Seite und 167 von 180 oben und
+     unten: ausschliesslich Rahmen, kein einziger Bildpunkt. Das TopJet-
+     Wasserzeichen endet bei x 1588, sichtbar ist bis x 1622 — 34 Pixel Luft.
+
+     Nicht weiter: bei 1,5 laege die Kante exakt auf der Bildkante und dem
+     Wasserzeichen blieben nur noch 12 Pixel. Die verbleibenden 22 Rahmen-
+     pixel je Seite sind rund 15 CSS-Pixel und tragen fast denselben Ton wie
+     der Pop-up-Hintergrund (#081D32 gegen #0A1F33) — sie lesen sich als
+     Hintergrund, nicht als Kasten.
+
+     Skaliert wird gleichmaessig ueber den vorhandenen Mechanismus des
+     Designsystems (siehe .story--imola), das Seitenverhaeltnis bleibt
+     dadurch exakt erhalten. */
+  --media-zoom: 1.45;
 }
 
 /* Kapitel 4: Bild links. Das Medium ist im Markup das zweite Element,
@@ -3128,4 +3257,83 @@ p.results__footnote--standings {
     filter: none;
     opacity: 1;
   }
+}
+
+/* 11. Intro-Overlay -------------------------------------------------------- */
+/* Ein vorgeschalteter Opener, kein zweiter Seitenaufruf: Das Overlay liegt
+   ueber der bereits geladenen Startseite und nimmt sich nach dem Video selbst
+   aus dem DOM. Kein Redirect, kein Reload.
+
+   Alles haengt an html.js — dieselbe Bedingung wie bei Abschnitt 4. Ohne
+   JavaScript wird die Klasse nie gesetzt, das Overlay bleibt display: none
+   und die Seite ist sofort da. Damit kann ein toter Layer niemanden
+   aussperren. */
+.intro {
+  display: none;
+
+  /* Ausblendzeit des Overlays. Bewusst laenger als --fade-panel: der Schnitt
+     vom schnellen Logo auf die Startseite soll entschleunigt wirken. Der
+     Ruhepunkt davor steht als HOLD im Skript. */
+  --intro-fade-out: 1.4s;
+}
+
+.js .intro {
+  position: fixed;
+  inset: 0;
+  /* Ueber allem: Panels liegen auf 20, die Scrollleiste auf 1. */
+  z-index: 1000;
+  display: block;
+  background-color: var(--color-dark);
+  transition: opacity var(--intro-fade-out) var(--ease-soft);
+}
+
+/* Setzt das Skript nach dem ended-Ereignis; unmittelbar danach faellt das
+   Element aus dem Dokument. */
+.js .intro.is-done {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Der ganze Frame bleibt stehen: contain skaliert nur, es schneidet nie.
+   object-position steht per Vorgabe auf 50 % 50 %, das Bild sitzt also in
+   beiden Achsen mittig. Bleibt seitlich oder oben und unten Flaeche uebrig,
+   zeigt sie den Hintergrund des Overlays — dasselbe CDF-Dunkelblau, das auch
+   der Clip selbst traegt. */
+.intro__video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+
+  /* Fade-in: Der Clip beginnt unsichtbar und wird eingeblendet, sobald
+     Bilddaten vorliegen — vorher gaebe es nur eine leere Flaeche zu faden.
+     Nur Opazitaet, keine Bewegung, kein Massstab. */
+  opacity: 0;
+  transition: opacity var(--fade-panel) var(--ease-soft);
+}
+
+.intro__video.is-visible {
+  opacity: 1;
+}
+
+/* Abschnitt 4 friert mit body.is-preload * { transition: none !important }
+   die ganze Seite ein, bis das Intro freigibt — und trifft damit auch dieses
+   Overlay. Ohne Ausnahme spraenge die Deckkraft hart, statt zu blenden:
+   gemessen sprang der Fade-in des Clips von 0,000 auf 1,000 innerhalb eines
+   Frames. Die beiden Regeln nehmen genau die zwei Elemente des Intros aus.
+   !important gegen !important entscheidet die hoehere Spezifitaet — die
+   Universalregel wiegt nur (0,1,0), diese hier (0,2,0). */
+body.is-preload .intro {
+  transition: opacity var(--intro-fade-out) var(--ease-soft) !important;
+}
+
+body.is-preload .intro__video {
+  transition: opacity var(--fade-panel) var(--ease-soft) !important;
+}
+
+/* Solange das Intro laeuft, steht die Seite darunter still. Das Overlay
+   faengt Zeiger und Klicks ohnehin ab, hier geht es um Rad und Trackpad. */
+.is-intro,
+.is-intro body {
+  overflow: hidden;
 }

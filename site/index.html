@@ -28,6 +28,116 @@
      (identische Mechanik wie im alten Aerial-Template). -->
 <body class="page page--home is-preload">
 
+  <!-- Intro — laeuft einmalig vor der Startseite. Das Overlay liegt nur ueber
+       dem bereits geladenen Dokument, es ersetzt es nicht: kein Redirect, kein
+       zweiter Seitenaufruf. Nach dem ended-Ereignis blendet es aus und nimmt
+       sich selbst aus dem DOM. Gestaltung siehe Abschnitt 11 im Stylesheet. -->
+  <div class="intro" id="intro" aria-hidden="true">
+    <!-- Kein controls-Attribut: eine native Player-Leiste kommt im
+         Designsystem nirgends vor. playsinline haelt iOS vom Vollbildplayer
+         ab. muted steht hier, obwohl der Clip gar keine Tonspur hat — es ist
+         die einzige Fassung, die jeder Browser ohne Nutzergeste startet, und
+         ohne Audio aendert es hoerbar nichts. Kein loop. -->
+    <video class="intro__video" id="intro-video"
+           src="/assets/perfect-intro-logo-only.mp4"
+           width="1920" height="1080"
+           autoplay muted playsinline preload="auto"></video>
+  </div>
+
+  <script>
+  (function () {
+    'use strict';
+
+    var root = document.documentElement;
+    var intro = document.getElementById('intro');
+    var video = document.getElementById('intro-video');
+    if (!intro || !video) return;
+
+    root.classList.add('is-intro');
+
+    /* Ruhepunkt zwischen letztem Intro-Frame und Uebergang. Der finale
+       Logo-Zustand bleibt so lange stehen — kein Frame, keine Animation,
+       nur Halten. */
+    var HOLD = 750;
+
+    var released = false;
+    var watchdog = null;
+
+    /* Overlay weg und Seite freigeben. Laeuft garantiert nur einmal. */
+    function release() {
+      if (released) return;
+      released = true;
+      window.clearTimeout(watchdog);
+      root.classList.remove('is-intro');
+
+      /* Erst hier faellt der Preload-Freeze aus Abschnitt 4. Bis zu diesem
+         Moment stand die Startseite still; ihre Animation beginnt also mit
+         dem Uebergang und nicht schon unsichtbar hinter dem Overlay. An der
+         Animation selbst aendert das nichts — nur an ihrem Startzeitpunkt.
+         Beides im selben Durchlauf: der Browser rechnet die Stile einmal,
+         der Freeze faellt und der Fade laeuft. */
+      document.body.classList.remove('is-preload');
+      intro.classList.add('is-done');
+
+      /* Erst nach dem Fade aus dem Dokument nehmen, sonst waere der
+         Uebergang ein harter Schnitt. Etwas mehr als --intro-fade-out. */
+      window.setTimeout(function () {
+        if (intro.parentNode) intro.parentNode.removeChild(intro);
+      }, 1600);
+    }
+
+    /* Regulaerer Weg: Das Video ist wirklich durch. Steht die Startseite
+       darunter noch nicht, wird auf load gewartet — sonst faende der
+       Uebergang auf eine halbfertige Flaeche statt auf die Seite. Der
+       Watchdog laeuft dabei weiter und deckelt das Warten. */
+    function finish() {
+      if (released) return;
+      if (document.readyState !== 'complete') {
+        window.addEventListener('load', finish, { once: true });
+        return;
+      }
+      window.setTimeout(release, HOLD);
+    }
+
+    /* Der Clip liegt bei 33 KB und ist oft schon fertig, bevor ueberhaupt
+       einmal gerendert wurde. Wird is-visible dann sofort gesetzt, hat der
+       Browser keinen Ausgangszustand zum Ueberblenden und springt hart auf
+       volle Deckkraft. Zwei Frames Vorlauf stellen sicher, dass die Null
+       einmal wirklich gestanden hat — erst danach faedelt der Fade ein. */
+    function reveal() {
+      window.requestAnimationFrame(function () {
+        window.requestAnimationFrame(function () {
+          video.classList.add('is-visible');
+        });
+      });
+    }
+
+    if (video.readyState >= 2) reveal();
+    else video.addEventListener('loadeddata', reveal, { once: true });
+
+    video.addEventListener('ended', finish, { once: true });
+
+    /* Fallback: Laesst sich der Clip nicht laden oder nicht abspielen, wird
+       sofort freigegeben. Niemand soll auf einem toten Layer haengen. */
+    video.addEventListener('error', release, { once: true });
+
+    var started = video.play();
+    if (started && started.catch) started.catch(release);
+
+    /* Zweiter Fallback: Bleibt ended aus, greift diese Obergrenze. Sie
+       richtet sich nach der echten Laufzeit, sobald sie bekannt ist — sie
+       ersetzt nicht das ended-Ereignis, sie sichert es nur ab. */
+    function arm() {
+      window.clearTimeout(watchdog);
+      var seconds = (isFinite(video.duration) && video.duration > 0) ? video.duration : 6;
+      watchdog = window.setTimeout(release, (seconds + 3) * 1000);
+    }
+
+    arm();
+    video.addEventListener('loadedmetadata', arm, { once: true });
+  })();
+  </script>
+
   <main class="hero">
     <h1 class="hero__title">Nicolas Lenzi Loeffler.</h1>
     <p class="hero__tagline">Formula 3 Driver.</p>
@@ -159,7 +269,41 @@
 
           <div class="about" data-about-scroller>
 
-            <!-- Kapitel 1 ist der Racing-Hero: Streckenverlauf, Rennwochenende
+            <!-- Kapitel 1 ist das Racing-Video und steht ganz oben und fuer sich: keine
+                 Ueberschrift, kein Text, keine Bildunterschrift. Aufbau und
+                 Masse kommen unveraendert aus .story--media-first, dem
+                 Querformat-Kapitel des About-Pop-ups: volle Kapitelbreite,
+                 16:9-Kasten, derselbe Eckenradius und dieselbe Bildanmutung
+                 wie jedes andere Medium der Seite. Der Abstand nach oben und
+                 unten ist --story-gap, gesetzt von .story + .story — es gibt
+                 hier also keinen eigenen Aussenabstand. -->
+            <article class="story story--media-first story--racing-video" data-story>
+              <div class="story__frame">
+                <figure class="story__figure">
+                  <div class="story__media">
+                    <!-- Kein controls-Attribut: eine native Player-Leiste
+                         kommt im Designsystem nirgends vor. Kein muted: der
+                         Clip bringt eine eigene Tonspur mit und soll sie
+                         hoerbar abspielen. Moeglich ist das, weil er nicht
+                         beim Seitenaufruf startet, sondern erst wenn das
+                         Pop-up per Klick geoeffnet wird — diese Nutzergeste
+                         erlaubt dem Browser Ton. Lehnt er trotzdem ab, faellt
+                         main.js auf stumme Wiedergabe zurueck.
+                         playsinline haelt iOS vom Vollbildplayer ab.
+                         Kein loop — nach gut sechs Sekunden bleibt das
+                         Video im letzten Frame stehen. Beim Oeffnen des
+                         Pop-ups spult main.js es auf null zurueck und startet
+                         es, damit der Clip jedes Mal vollstaendig laeuft und
+                         nicht ab dem zweiten Oeffnen auf dem Endframe steht. -->
+                    <video src="/assets/racing-panel-final_v2_.mp4"
+                           width="1920" height="1080"
+                           autoplay playsinline preload="auto"></video>
+                  </div>
+                </figure>
+              </div>
+            </article>
+
+            <!-- Kapitel 2 ist der Racing-Hero: Streckenverlauf, Rennwochenende
                  und Countdown, mittig und über die volle Kapitelfläche. Kein
                  Bild daneben — die Aufmerksamkeit soll auf dem nächsten
                  Renneinsatz liegen, Porträts trägt das Profile-Pop-up. -->
@@ -488,7 +632,12 @@
   </footer>
 
   <!-- Aerial-Mechanik: nach vollständigem Laden startet die Intro-Kette. -->
-  <script>window.onload = function () { document.body.classList.remove('is-preload'); };</script>
+  <!-- Waehrend das Intro laeuft, gibt nicht onload frei, sondern das
+       Intro-Skript nach Hold und Uebergang. Ohne diese Bedingung liefe die
+       Animation der Startseite unsichtbar hinter dem Overlay ab (gemessen:
+       onload bei 139ms, fertig bei 2400ms, Overlay bis 3000ms). Laeuft kein
+       Intro, bleibt es beim bisherigen Verhalten. -->
+  <script>window.onload = function () { if (!document.documentElement.classList.contains('is-intro')) document.body.classList.remove('is-preload'); };</script>
   <script src="/assets/js/main.js"></script>
 </body>
 </html>

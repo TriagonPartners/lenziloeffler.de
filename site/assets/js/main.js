@@ -88,6 +88,7 @@
     item.panel.classList.remove('is-open');
     item.button.setAttribute('aria-expanded', 'false');
     if (item.panel.classList.contains('panel--story')) resetAbout(item.panel);
+    if (item.hideScrollbar) item.hideScrollbar();
   }
 
   function closeAll() {
@@ -193,7 +194,13 @@
     panel.revealTimer = window.setTimeout(function () {
       if (!panel.classList.contains('is-open')) return;
 
+      // Der Sprung zurueck nach oben ist keine Nutzerbewegung und soll die
+      // Scrollleiste deshalb nicht aufblitzen lassen.
+      ignoreNextScroll();
       scroller.scrollTop = 0;
+
+      // Clip von vorn, moeglichst mit Ton — siehe startVideos().
+      startVideos(panel);
 
       if (!('IntersectionObserver' in window)) {
         stories.forEach(function (story) {
@@ -235,7 +242,200 @@
     stories.forEach(function (story) {
       story.classList.remove('is-revealed');
     });
+    // Gegenstueck zum Start: anhalten und zurueckspulen, damit das naechste
+    // Oeffnen wieder beim ersten Frame beginnt.
+    stopVideos(panel);
   }
+
+  /* --- Ton in Panel-Videos ----------------------------------------------
+     Die Story-Panels oeffnen auf Geraeten mit Maus per mouseenter (siehe
+     oben). Ein mouseenter ist fuer den Browser aber KEINE Nutzergeste, und
+     ohne Geste verweigert jeder Browser die Tonwiedergabe. Ein Klick auf den
+     Button hilft nicht: der schaltet um und wuerde das per Hover bereits
+     geoeffnete Panel wieder schliessen. Deshalb drei Stufen:
+
+       1. Beim Oeffnen mit Ton versuchen. Das gelingt, sobald irgendwo auf
+          der Seite schon einmal geklickt wurde — sie gilt dem Browser dann
+          als aktiviert und laesst Ton zu.
+       2. Lehnt er ab, laeuft der Clip stumm weiter und meldet sich fuer die
+          naechste echte Geste an. Kommt sie waehrend der Wiedergabe, faellt
+          nur die Stummschaltung; ist der Clip schon durch, startet er neu.
+       3. Ein Klick direkt auf das Video startet es jederzeit mit Ton. Das
+          ist der eine Weg, der in jedem Browser verlaesslich funktioniert. */
+
+  var waitingForGesture = [];
+
+  function play(video) {
+    var started = video.play();
+    if (started && started.catch) started.catch(function () {});
+    return started;
+  }
+
+  function playWithSound(video) {
+    video.muted = false;
+    if (video.ended || video.paused) video.currentTime = 0;
+    play(video);
+  }
+
+  function startVideos(panel) {
+    Array.prototype.forEach.call(panel.querySelectorAll('video'), function (video) {
+      video.currentTime = 0;
+      video.muted = false;
+      var started = video.play();
+      if (!started || !started.catch) return;
+      started.catch(function () {
+        // Ton abgelehnt: stumm laufen lassen und auf die erste Geste warten.
+        video.muted = true;
+        play(video);
+        if (waitingForGesture.indexOf(video) === -1) waitingForGesture.push(video);
+      });
+    });
+  }
+
+  function stopVideos(panel) {
+    Array.prototype.forEach.call(panel.querySelectorAll('video'), function (video) {
+      video.pause();
+      video.currentTime = 0;
+      var waiting = waitingForGesture.indexOf(video);
+      if (waiting !== -1) waitingForGesture.splice(waiting, 1);
+    });
+  }
+
+  // Stufe 2: die erste echte Geste holt den Ton nach.
+  function unmuteOnGesture() {
+    if (!waitingForGesture.length) return;
+    var pending = waitingForGesture;
+    waitingForGesture = [];
+    pending.forEach(playWithSound);
+  }
+
+  ['pointerdown', 'keydown'].forEach(function (type) {
+    document.addEventListener(type, unmuteOnGesture, true);
+  });
+
+  // Stufe 3: Klick auf das Video selbst — von vorn, mit Ton.
+  Array.prototype.forEach.call(document.querySelectorAll('.panel--story video'), function (video) {
+    video.addEventListener('click', function () {
+      video.currentTime = 0;
+      playWithSound(video);
+    });
+  });
+
+  /* --- Sichtbare Scrollleiste in den Pop-ups -----------------------------
+     Bisher war in den Pop-ups nicht zu erkennen, dass unter dem sichtbaren
+     Ausschnitt noch Inhalt liegt — der unscharfe Anschnitt des naechsten
+     Kapitels allein ist je nach Motiv kaum wahrnehmbar. Diese Leiste kommt
+     als zweiter, ruhiger Hinweis dazu.
+
+     Sie ersetzt keine Scroll-Logik: gescrollt wird weiter vom Browser, hier
+     wird ausschliesslich mitgelesen und gezeichnet. Gestalt siehe
+     .panel__scroll im Stylesheet. */
+
+  var MIN_THUMB = 24;   // px — darunter waere der Daumen kaum noch zu sehen
+  var HIDE_AFTER = 1000; // ms Ruhe, danach blendet die Leiste wieder aus
+
+  /* Nicht jedes scroll-Ereignis stammt vom Nutzer: beim Oeffnen setzt
+     startAbout() den Container auf null zurueck. Diese Flagge blendet genau
+     solche selbst ausgeloesten Spruenge aus. Zwei Frames, weil das Ereignis
+     erst nach dem Setzen zugestellt wird. */
+  var programmaticScroll = false;
+
+  function ignoreNextScroll() {
+    programmaticScroll = true;
+    window.requestAnimationFrame(function () {
+      window.requestAnimationFrame(function () {
+        programmaticScroll = false;
+      });
+    });
+  }
+
+  function setupPanelScrollbar(item) {
+    var panel = item.panel;
+    if (!panel) return;
+
+    /* In Profile und Racing scrollt der innere Kapitelcontainer, im
+       Contact-Panel das Panel selbst (dort ist overflow-y der Notausgang
+       fuer zu langen Text). */
+    var scroller = panel.querySelector('[data-about-scroller]') || panel;
+
+    var track = document.createElement('div');
+    track.className = 'panel__scroll';
+    track.setAttribute('aria-hidden', 'true');
+    var thumb = document.createElement('span');
+    thumb.className = 'panel__scroll-thumb';
+    track.appendChild(thumb);
+    panel.appendChild(track);
+
+    function sync() {
+      var viewport = scroller.clientHeight;
+      var total = scroller.scrollHeight;
+      var scrollable = total - viewport;
+
+      // Passt alles in den Ausschnitt, gibt es nichts anzuzeigen.
+      if (scrollable <= 1) {
+        track.hidden = true;
+        return;
+      }
+      track.hidden = false;
+
+      /* Scrollt das Panel selbst, wandert die absolut gesetzte Leiste mit
+         dem Inhalt nach oben aus dem Bild. Der Versatz haelt sie an Ort und
+         Stelle. Bei .about erledigt das der Container und der Versatz
+         bleibt leer. */
+      track.style.transform = scroller === panel
+        ? 'translateY(' + scroller.scrollTop + 'px)'
+        : '';
+
+      var trackHeight = track.clientHeight;
+      // Laenge im Verhaeltnis sichtbar zu gesamt, nach unten begrenzt.
+      var height = Math.max(MIN_THUMB, Math.round(trackHeight * viewport / total));
+      var progress = scroller.scrollTop / scrollable;
+      thumb.style.height = height + 'px';
+      thumb.style.top = Math.round(progress * (trackHeight - height)) + 'px';
+    }
+
+    /* Sichtbarkeit. Ausgeloest wird ausschliesslich vom scroll-Ereignis des
+       Containers — und weil alle drei nur overflow-y fuehren, kann es nur
+       durch vertikales Scrollen entstehen. Ein Zeiger, der bloss ueber dem
+       Pop-up liegt, und eine waagerechte Mausbewegung erzeugen keines. */
+    var hideTimer = null;
+
+    function reveal() {
+      if (programmaticScroll) return;
+      track.classList.add('is-scrolling');
+      window.clearTimeout(hideTimer);
+      hideTimer = window.setTimeout(function () {
+        track.classList.remove('is-scrolling');
+      }, HIDE_AFTER);
+    }
+
+    // Beim Schliessen sofort zuruecksetzen, sonst stuende die Leiste beim
+    // schnellen Wiederaufklappen noch sichtbar da, ohne dass gescrollt wurde.
+    item.hideScrollbar = function () {
+      window.clearTimeout(hideTimer);
+      track.classList.remove('is-scrolling');
+    };
+
+    scroller.addEventListener('scroll', function () {
+      sync();
+      reveal();
+    }, { passive: true });
+    window.addEventListener('resize', sync);
+
+    /* Bilder und Video aendern die Gesamthoehe erst, wenn sie geladen sind.
+       Der Beobachter faengt das ab, ohne dass hier gepollt werden muss. */
+    if ('ResizeObserver' in window) {
+      var observer = new ResizeObserver(sync);
+      observer.observe(scroller);
+      Array.prototype.forEach.call(scroller.children, function (child) {
+        observer.observe(child);
+      });
+    }
+
+    sync();
+  }
+
+  panels.forEach(setupPanelScrollbar);
 
   function initializeAboutState(panel) {
     panel.observer = null;
