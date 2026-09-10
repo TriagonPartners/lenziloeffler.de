@@ -107,6 +107,15 @@ Werden beim Upload mitgegeben, sonst raten Browser selbst — und raten lange.
 |---|---|---|
 | `.avif .jpg .png .ico .svg .woff2 .ttf` | `public, max-age=604800` | ändern sich selten, eine Woche |
 | `.html .css .js .webmanifest` | `no-cache` | jedes Mal gegenprüfen; mit ETag kostet das nur ein 304 |
+| `.mp4` | **keiner** | siehe unten |
+
+**Videos bekommen derzeit keinen `Cache-Control`-Header.** In `deploy.sh`
+steht `*.mp4` in keiner der beiden `aws s3 cp`-Include-Listen; hochgeladen
+werden die Dateien erst vom abschließenden `aws s3 sync`, und der setzt keine
+Header. Content-Type rät S3 richtig (`video/mp4`), die Auslieferung
+funktioniert also — die beiden Clips werden nur nicht so lange gecacht wie
+Bilder. Wer das ändern will, ergänzt `--include "*.mp4"` in der ersten
+`cp`-Zeile (der mit `max-age=604800`).
 
 **Achtung bei Favicons:** Die Dateinamen bleiben über Änderungen hinweg gleich.
 Nach einem neuen Favicon kann bis zu eine Woche lang das alte ausgeliefert

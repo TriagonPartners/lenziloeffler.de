@@ -15,8 +15,11 @@ site/
   datenschutz/index.html
   site.webmanifest      Für „Zum Startbildschirm" auf Android
   assets/
-    css/style.css       Das gesamte Stylesheet, kommentiert und in 10 Abschnitte gegliedert
-    js/main.js          Panel-Logik, Scroll-Reveal, Countdown, Umrandungen
+    css/style.css       Das gesamte Stylesheet, kommentiert und in 11 Abschnitte gegliedert
+    js/main.js          Panel-Logik, Scroll-Reveal, Countdown, Umrandungen,
+                        Video-Wiedergabe, Scrollleisten
+    perfect-intro-logo-only.mp4   Logo-Clip des Intro-Openers (1,6 s, ohne Ton)
+    racing-panel-final_v2_.mp4    Video im Racing-Pop-up (6,6 s, mit Tonspur)
     fonts/Saira/        Variable Font, lokal ausgeliefert (keine Google-Fonts-Anfrage)
     icons/              SVGs, per CSS-Maske eingefärbt
                         linkedin-…svg — selbst gezeichnet, siehe unten
@@ -424,6 +427,171 @@ Bildoberkante auf derselben Linie. Das gilt über `.story--split` für **jedes**
 solche Kapitel in **jedem** Pop-up — dieselbe Auflösung wie auf
 manuel-beck.com.
 
+### Der Intro-Opener ist ein Layer, keine zweite Seite
+
+Beim Aufruf der Startseite läuft zuerst ein Logo-Clip. Das ist **kein
+Redirect und kein zweiter Seitenaufruf**: Das Overlay liegt über dem bereits
+geladenen Dokument und nimmt sich nach dem Video selbst aus dem DOM.
+
+Markup steht als erstes Element im `<body>`, Gestaltung in **Abschnitt 11**
+des Stylesheets, Steuerung in einem Inline-Skript direkt darunter. Bewusst
+inline und nicht in `main.js`: Das Skript muss binden, bevor `ended` feuern
+kann, und `main.js` lädt erst am Seitenende.
+
+Ablauf, live gemessen:
+
+| Phase | Wert | Woher |
+|---|---|---|
+| Fade-in des Clips | 0,45 s (`--fade-panel`) | gemessen 383 ms |
+| Clip läuft | 1,6 s | `ended`-Ereignis, keine geschätzte Dauer |
+| Hold — letzter Frame steht | 0,75 s (`HOLD` im Skript) | gemessen 788 ms |
+| Fade-out des Overlays | 1,4 s (`--intro-fade-out`) | gemessen 1294 ms |
+| Overlay aus dem DOM | +1,6 s nach Fade-Beginn | gemessen 4115 ms |
+
+**Der wichtigste Punkt — die Startseite darf nicht vorher animieren.**
+Abschnitt 4 friert die Seite mit `body.is-preload` ein, und ursprünglich hob
+`window.onload` das auf. Das feuerte nach **34–139 ms**; die komplette
+Hero-Animation lief also bis 2400 ms unsichtbar hinter dem Overlay ab, und
+darunter kam eine bereits fertig eingeblendete Seite zum Vorschein. Deshalb
+gibt heute nicht mehr `onload` frei, sondern das Intro-Skript:
+
+```js
+window.onload = function () {
+  if (!document.documentElement.classList.contains('is-intro'))
+    document.body.classList.remove('is-preload');
+};
+```
+
+`is-preload` fällt jetzt im selben Durchlauf, in dem der Fade startet — die
+Seite kommt **während** des Übergangs herauf, nicht danach. Läuft kein Intro
+(Fehler, kein JavaScript), bleibt es beim alten Verhalten.
+
+**Stolperfalle:** `body.is-preload *` setzt `transition: none !important` und
+trifft damit auch das Overlay selbst. Ohne Ausnahme sprang der Fade-in des
+Clips innerhalb eines Frames von 0,000 auf 1,000. Zwei Regeln am Ende von
+Abschnitt 11 nehmen die beiden Intro-Elemente aus; `!important` gegen
+`!important` entscheidet die höhere Spezifität — die Universalregel wiegt
+(0,1,0), die Ausnahme (0,2,0).
+
+**Zweite Stolperfalle:** Der Clip ist 33 KB und oft fertig, bevor überhaupt
+einmal gerendert wurde. Wird die Sichtbar-Klasse dann sofort gesetzt, hat der
+Browser keinen Ausgangszustand zum Überblenden. Zwei `requestAnimationFrame`
+Vorlauf lösen das.
+
+Kein Nutzer kann auf dem Layer hängen bleiben:
+
+| Fall | Reaktion |
+|---|---|
+| kein JavaScript | Overlay bleibt `display: none`, Seite sofort da |
+| MP4 lädt nicht | `error`-Ereignis → sofortige Freigabe |
+| `play()` abgelehnt | Promise-`catch` → sofortige Freigabe |
+| `ended` bleibt aus | Watchdog: echte Laufzeit + 3 s |
+
+### Das Racing-Video bringt seinen Rahmen mit
+
+`racing-panel-final_v2_.mp4` ist 1920 × 1080, **die Aufnahme darin aber nur
+1280 × 720**, mittig auf einer dunkelblauen Fläche. `ffmpeg -vf cropdetect`
+meldet über alle Frames konstant `1280:720:320:180`. Die Randfarbe ist
+`#081D32` und liegt damit knapp neben dem `--color-dark` der Seite
+(`#0A1F33`) — deshalb liest sich der Rand als eigener, etwas dunklerer Kasten
+um das Video.
+
+Der Kasten steht bereits auf voller Kapitelbreite; das Bild wirkte trotzdem
+klein, weil zwei Drittel davon Rahmen sind. Gegenmittel ist der vorhandene
+Zoom-Mechanismus des Designsystems, derselbe wie bei `.story--imola`:
+
+```css
+.story--racing-video .story__media video { --media-zoom: 1.45; }
+```
+
+**Warum genau 1,45 und nicht mehr.** Das TopJet-Wasserzeichen sitzt bei
+x 1557–1588, y 852–878 — die Aufnahme endet bei x 1600, es bleiben also nur
+**zwölf Pixel Luft**. Bei Zoom 1,5 läge die Schnittkante exakt auf der
+Bildkante und das Wasserzeichen würde angeschnitten; das war schon einmal der
+Fall. Bei 1,45 bleiben 34 Pixel Abstand:
+
+| Zoom | sichtbar bis | Luft zum Wasserzeichen | Bild in % der Kastenbreite |
+|---|---|---|---|
+| 1,40 | x 1646 | 58 px | 93,3 % |
+| **1,45** | **x 1622** | **34 px** | **96,7 %** |
+| 1,50 | x 1600 | 12 px | 100 % |
+
+Weggeschnitten werden dabei 298 von 320 Rahmenpixeln je Seite — **nur
+Rahmen, kein Bildpunkt**. Die verbleibenden 22 Pixel sind rund 15 CSS-Pixel
+und lesen sich als Hintergrund.
+
+Zwei Begleitregeln gehören dazu:
+
+- `max-height: none` hebt den Höhendeckel von `.story--media-first` auf. Beim
+  Foto darf der oben anschneiden, beim Video kippte er das Seitenverhältnis:
+  auf flachen Fenstern wurde aus 16:9 ein Streifen von bis zu **5,4 : 1** und
+  `cover` schnitt zwei Drittel der Bildhöhe weg.
+- `object-fit: contain` statt des geerbten `cover`. Beide zeigen bei einem
+  16:9-Kasten dasselbe Bild, aber `cover` würde bei jeder Rundung im
+  Kastenmaß die Überlänge abschneiden.
+
+Der Clip endet mit einem LENZI-Logo-Outro (Bounding-Box x 565–1426,
+y 482–595) — auch das bleibt beim Zoom vollständig sichtbar.
+
+### Ton läuft nicht von allein — und HTTPS ändert daran nichts
+
+Der Intro-Clip hat **keine Tonspur**, dort stellt sich die Frage nicht. Das
+Racing-Video hat AAC in Stereo, Spitzenpegel −18,7 dB.
+
+Die Pop-ups öffnen auf Geräten mit Maus per `mouseenter`. **Ein Hover ist für
+Browser keine Nutzergeste** — `play()` mit Ton wird mit `NotAllowedError`
+abgelehnt („play() failed because the user didn't interact with the document
+first"). Ein Klick auf den Button hilft nicht: der schaltet um und würde das
+per Hover bereits geöffnete Panel schließen.
+
+`main.js` löst das in drei Stufen:
+
+1. Beim Öffnen mit Ton versuchen. Gelingt, sobald irgendwo auf der Seite
+   schon einmal geklickt wurde.
+2. Wird abgelehnt, läuft der Clip stumm weiter und meldet sich für die
+   nächste echte Geste an (`pointerdown`, `keydown`).
+3. Ein Klick direkt auf das Video startet es jederzeit von vorn mit Ton — der
+   einzige in jedem Browser verlässliche Weg.
+
+**Ein Deploy ändert daran nichts.** Chromes Autoplay-Policy kennt als
+Kriterien Nutzergeste, Media Engagement Index und installierte PWA — das
+Protokoll gehört nicht dazu, HTTP, HTTPS und `localhost` werden gleich
+behandelt. Der MEI zählt zudem pro Origin, ein Erstbesucher startet also
+überall bei null. Safari und Firefox verlangen ebenfalls eine Geste.
+
+Wer Ton verlässlich will, braucht einen sichtbaren Ton-Schalter: stumm
+starten, ein Klick darauf ist die Geste, die alle Browser akzeptieren.
+
+### Die Scrollleiste liegt über dem Inhalt, nicht daneben
+
+Die drei Pop-ups zeigen beim vertikalen Scrollen eine dünne Leiste am rechten
+Innenrand. Sie ist **keine gestaltete native Scrollbar**: Sobald
+`::-webkit-scrollbar` eine Breite bekommt, ist sie in Chrome und Safari keine
+Overlay-Leiste mehr und **belegt Layoutbreite** — der Inhalt aller Pop-ups
+würde schmaler, samt `--content-w` und allem, was daraus abgeleitet ist.
+
+Stattdessen hängt `main.js` in jedes Panel eine eigene Leiste ein und liest
+per `scroll`-Ereignis nur mit. `pointer-events: none` hält sie vollständig
+aus jeder Interaktion heraus; ziehen lässt sie sich deshalb bewusst nicht.
+
+| | |
+|---|---|
+| Breite | 3 px, Daumen als Pille (`border-radius: 999px`) |
+| Farbe | `var(--color-light)` bei `opacity: 0.32` |
+| Abstand rechts | derselbe `clamp(0.5rem, 1.5vw, 0.9rem)` wie `.panel__close` |
+| Beginn oben | in Profile und Racing unter dem Close-Button |
+| Sichtbarkeit | im Ruhezustand 0, beim Scrollen 1, nach 1 s Ruhe wieder 0 |
+
+Ausgelöst wird ausschließlich vom `scroll`-Ereignis des Containers. Da alle
+drei nur `overflow-y` führen, kann es gar nicht anders als durch vertikales
+Scrollen entstehen — Hover und waagerechte Mausbewegung erzeugen keines. Der
+Sprung auf `scrollTop = 0` beim Öffnen wird unterdrückt, sonst blitzte die
+Leiste beim Aufklappen auf.
+
+In Partnerships bleibt sie meist unsichtbar: Dort passt der Inhalt in den
+Kasten, es gibt also nichts anzuzeigen. Sie erscheint erst, wenn er
+überläuft.
+
 ### Schrift
 
 Saira, lokal aus `assets/fonts/` — keine Anfrage an Google, wie es die
@@ -518,6 +686,29 @@ python3 -m http.server 8000
 
 Dann `http://localhost:8000` öffnen. Die absoluten Pfade (`/assets/…`)
 brauchen einen Server — ein Doppelklick auf `index.html` funktioniert nicht.
+
+**Immer mit Hard Reload prüfen** (`Cmd` + `Shift` + `R`). `python3 -m
+http.server` schickt `Last-Modified`, und der Browser hält Stylesheet und
+Skript danach fest. Beim Nachmessen einer CSS-Änderung sah es dadurch mehrfach
+so aus, als hätte eine Regel keine Wirkung — tatsächlich lief noch die alte
+Datei. Wer länger testet, aktiviert in den DevTools unter Network besser
+dauerhaft „Disable cache".
+
+Gegenprobe in der Konsole, ob die neue CSS aktiv ist:
+
+```js
+getComputedStyle(document.querySelector('#panel-racing .story__media')).maxHeight
+// "none"  → neue Datei;  ein Pixelwert → noch die alte im Cache
+```
+
+Das Intro läuft bei jedem Aufruf. Zum Überspringen während der Arbeit an der
+Startseite reicht in der Konsole:
+
+```js
+document.getElementById('intro').remove();
+document.documentElement.classList.remove('is-intro');
+document.body.classList.remove('is-preload');
+```
 
 ---
 
