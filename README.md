@@ -4,6 +4,9 @@ Website von Nicolas „Lenzi" Loeffler, Formel-3-Fahrer.
 Reines HTML, CSS und JavaScript — kein Framework, kein Build-Schritt. Was in
 `site/` liegt, ist genau das, was online steht.
 
+**Aktueller Stand: v1.3** — Versionsverlauf siehe `CHANGELOG.md`.
+Diesen Stand auschecken: `git checkout v1.3`
+
 ---
 
 ## Aufbau
@@ -32,6 +35,7 @@ originale/              Unbearbeitete Quelldateien, wird nicht deployt
 deploy.sh               Upload nach S3 + CloudFront-Cache leeren
 infra.sh                Legt die AWS-Infrastruktur an (einmalig)
 DEPLOY.md               Betriebsanleitung
+CHANGELOG.md            Versionsverlauf, je Tag ein Eintrag
 ```
 
 ---
@@ -677,6 +681,21 @@ zurück. Alle Ausschnitte deshalb mit geraden Kanten: **1600 × 900**,
 
 ---
 
+## Voraussetzungen
+
+| Wofür | Was | Anmerkung |
+|---|---|---|
+| lokal ansehen | `python3` | für `http.server`, auf macOS vorinstalliert |
+| deployen | AWS CLI v2, konfiguriertes Profil | Rechte siehe DEPLOY.md |
+| Infrastruktur anlegen | AWS CLI v2 | einmalig, `./infra.sh` |
+
+Kein Node, kein npm, kein Build-Schritt, keine Abhängigkeiten. `deploy.conf`
+wird von `infra.sh` geschrieben, ist kontospezifisch und deshalb nicht im
+Repository — sie enthält nur Bucket-Name und CloudFront-Verteilungs-ID, keine
+Zugangsdaten. Die kommen aus dem AWS-Profil.
+
+---
+
 ## Lokal testen
 
 ```bash
@@ -720,3 +739,50 @@ document.body.classList.remove('is-preload');
 3. `./deploy.sh` — lädt `site/` hoch und leert den Cache.
 
 Details, Rechte und Fehlersuche: **DEPLOY.md**.
+
+---
+
+## Bekannte Punkte
+
+Stand v1.3. Nichts davon blockiert den Betrieb; alles ist bewusst so und
+nicht versehentlich.
+
+### Racing-Video: Ton kann beim Seitenaufruf zu hören sein
+
+Das `<video>` im Racing-Pop-up trägt `autoplay`, aber kein `muted`. Das Panel
+ist beim Laden `visibility: hidden` — erlaubt der Browser Autoplay mit Ton,
+startet der Clip trotzdem und man hört seine Tonspur, während das Intro-Logo
+einblendet, ohne etwas zu sehen.
+
+Nachgewiesen in Chrome: Unter `--autoplay-policy=no-user-gesture-required`
+läuft das Racing-Video ab 300 ms mit `paused: false`, `muted: false` und
+laufender `currentTime`, während das Intro noch aktiv ist. Unter
+`document-user-activation-required` bleibt es pausiert. Ob es auftritt, hängt
+also am Media Engagement Index der Origin — deshalb „manchmal".
+
+Das Intro-Video selbst ist **nicht** die Quelle: `perfect-intro-logo-only.mp4`
+hat gar keine Audiospur (ein einziger Stream, Typ `video`).
+
+**Behebung:** `autoplay` am Racing-`<video>` streichen. Die Wiedergabe steuert
+ohnehin vollständig `startVideos()` in `main.js` beim Öffnen des Panels. Die
+Korrektur ist in v1.3 bewusst **nicht** enthalten, weil v1.3 den geprüften
+Stand unverändert festhalten soll.
+
+### Ton im Racing-Pop-up braucht eine Nutzergeste
+
+Die Pop-ups öffnen per `mouseenter`, und ein Hover ist für Browser keine
+Nutzergeste. Details und der dreistufige Umgang damit stehen oben unter
+„Ton läuft nicht von allein". Ein Deploy oder HTTPS ändert daran nichts.
+
+### Videos werden ohne `Cache-Control` ausgeliefert
+
+`*.mp4` steht in keiner der `aws s3 cp`-Include-Listen von `deploy.sh`;
+hochgeladen wird erst vom abschließenden `sync`. Siehe DEPLOY.md.
+
+### Archiv und Repository-Größe
+
+`originale/` (30 MB) wird nicht deployt und bleibt bewusst erhalten, darin
+`Saira.zip` (11,5 MB) inhaltsgleich mit dem entpackten Ordner daneben. Das
+`.git`-Verzeichnis liegt bei rund 41 MB; die in v1.3 gelöschten Dateien
+stecken weiterhin in der History. Schrumpfen ginge nur per History-Rewrite
+und ist nicht vorgesehen.
