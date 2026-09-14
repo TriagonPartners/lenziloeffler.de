@@ -294,10 +294,17 @@
                          Video im letzten Frame stehen. Beim Oeffnen des
                          Pop-ups spult main.js es auf null zurueck und startet
                          es, damit der Clip jedes Mal vollstaendig laeuft und
-                         nicht ab dem zweiten Oeffnen auf dem Endframe steht. -->
+                         nicht ab dem zweiten Oeffnen auf dem Endframe steht.
+
+                         Bewusst KEIN autoplay: Das Panel ist beim Laden
+                         verborgen. Mit autoplay und ohne muted startete der
+                         Clip dort trotzdem, sobald der Browser Ton erlaubt —
+                         man hoerte ihn waehrend des Intros, ohne etwas zu
+                         sehen. Gestartet wird ausschliesslich von
+                         startVideos() in main.js beim Oeffnen des Pop-ups. -->
                     <video src="/assets/racing-panel-final_v2_.mp4"
                            width="1920" height="1080"
-                           autoplay playsinline preload="auto"></video>
+                           playsinline preload="auto"></video>
                   </div>
                 </figure>
               </div>

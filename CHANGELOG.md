@@ -6,6 +6,44 @@ Jede Version ist als Git-Tag abgelegt und lässt sich mit
 
 ---
 
+## v1.3.1 — 14.09.2026
+
+Fehlerbehebung. Betrifft ausschliesslich `site/index.html`; CSS, JavaScript
+und alle Assets bleiben unveraendert.
+
+### Behoben
+
+**Racing-Video spielte beim Seitenaufruf.** Das `<video>` im Racing-Pop-up
+trug `autoplay`, aber kein `muted`. Da das Panel beim Laden
+`visibility: hidden` ist, startete der Clip unsichtbar, sobald der Browser
+Autoplay mit Ton erlaubte — man hoerte seine Tonspur waehrend des
+Intro-Logos, ohne etwas zu sehen. Ob es auftrat, hing am Media Engagement
+Index der Origin, daher nur zeitweise.
+
+Behebung: `autoplay` am Racing-`<video>` entfernt. Kein `muted` ergaenzt —
+die Wiedergabe steuert weiterhin vollstaendig `startVideos()` und
+`stopVideos()` in `main.js` beim Oeffnen und Schliessen des Panels. Ein
+Kommentar ueber dem Element haelt fest, warum dort bewusst kein `autoplay`
+steht.
+
+### Geprueft
+
+- kein Ton beim initialen Seitenaufruf; Racing-Video bleibt waehrend des
+  gesamten Seitenaufbaus auf `paused: true` und `currentTime: 0`, auch unter
+  `--autoplay-policy=no-user-gesture-required`
+- Oeffnen startet den Clip von vorn und mit Ton, Schliessen pausiert und
+  spult zurueck, erneutes Oeffnen startet wieder von vorn
+- Intro-Timing unveraendert (ended 1645 ms, Hold 773 ms, Fade 1300 ms)
+- Konsole und Netzwerk sauber, keine 404, keine defekten Bilder oder Videos
+- Desktop, iPhone und iPad geprueft
+- Pixelvergleich gegen v1.3 ohne relevante Abweichung; die einzige mobile
+  Differenz stammt von der laufenden Countdown-Uhr
+
+Die Warnung `Unmuting failed and the element was paused instead`, die in v1.3
+noch erschien, entfaellt damit.
+
+---
+
 ## v1.3 — 11.09.2026
 
 Aufräum- und Übergabestand. **Keine funktionalen oder visuellen Änderungen**

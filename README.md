@@ -4,8 +4,8 @@ Website von Nicolas „Lenzi" Loeffler, Formel-3-Fahrer.
 Reines HTML, CSS und JavaScript — kein Framework, kein Build-Schritt. Was in
 `site/` liegt, ist genau das, was online steht.
 
-**Aktueller Stand: v1.3** — Versionsverlauf siehe `CHANGELOG.md`.
-Diesen Stand auschecken: `git checkout v1.3`
+**Aktueller Stand: v1.3.1** — Versionsverlauf siehe `CHANGELOG.md`.
+Diesen Stand auschecken: `git checkout v1.3.1`
 
 ---
 
@@ -746,27 +746,6 @@ Details, Rechte und Fehlersuche: **DEPLOY.md**.
 
 Stand v1.3. Nichts davon blockiert den Betrieb; alles ist bewusst so und
 nicht versehentlich.
-
-### Racing-Video: Ton kann beim Seitenaufruf zu hören sein
-
-Das `<video>` im Racing-Pop-up trägt `autoplay`, aber kein `muted`. Das Panel
-ist beim Laden `visibility: hidden` — erlaubt der Browser Autoplay mit Ton,
-startet der Clip trotzdem und man hört seine Tonspur, während das Intro-Logo
-einblendet, ohne etwas zu sehen.
-
-Nachgewiesen in Chrome: Unter `--autoplay-policy=no-user-gesture-required`
-läuft das Racing-Video ab 300 ms mit `paused: false`, `muted: false` und
-laufender `currentTime`, während das Intro noch aktiv ist. Unter
-`document-user-activation-required` bleibt es pausiert. Ob es auftritt, hängt
-also am Media Engagement Index der Origin — deshalb „manchmal".
-
-Das Intro-Video selbst ist **nicht** die Quelle: `perfect-intro-logo-only.mp4`
-hat gar keine Audiospur (ein einziger Stream, Typ `video`).
-
-**Behebung:** `autoplay` am Racing-`<video>` streichen. Die Wiedergabe steuert
-ohnehin vollständig `startVideos()` in `main.js` beim Öffnen des Panels. Die
-Korrektur ist in v1.3 bewusst **nicht** enthalten, weil v1.3 den geprüften
-Stand unverändert festhalten soll.
 
 ### Ton im Racing-Pop-up braucht eine Nutzergeste
 
