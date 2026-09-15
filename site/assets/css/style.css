@@ -2141,15 +2141,8 @@ body.is-preload *::after {
               filter var(--fade) var(--ease-soft) 100ms;
 }
 
-/* Streckenverlauf. EINE durchgehende Kurve: die Mittellinie des Korridors,
-   den die Vorlage aus zwei Linien zeichnet. Sie ist als geschlossene
-   Bézier-Kette gesetzt (149 Knoten).
-
-   An JEDEM der 149 Knoten laufen die beiden Kontrollpunkte jetzt auf einer
-   gemeinsamen Tangente — der Richtungssprung ist dort exakt 0° statt bis zu
-   4,76°. Das waren die sichtbaren Knicke. Die Knotenpunkte selbst sind
-   unverändert, die Geometrie der Strecke also auch; die Kurve dazwischen
-   weicht um höchstens 0,043 Einheiten ab (viewBox 622,87 breit).
+/* Streckenverlauf. EINE durchgehende Kurve, als geschlossene Bézier-Kette
+   gesetzt.
 
    Strichstärke: doppelt DIE Strichstärke der Seite. Als Haarlinie las sich
    der Verlauf ungleichmäßig, weil die Kantenglättung bei gut 1px je nach
@@ -2158,9 +2151,23 @@ body.is-preload *::after {
    also nirgends dünner oder dicker werden. Farbe ist das CDF-Hellgrau des
    Fließtextes, ohne Abschwächung. */
 .countdown__track {
-  /* aspect-ratio nach dem viewBox: der Kasten trägt damit exakt die
-     Proportion der Zeichnung — die Unterkante des Kastens IST die unterste
-     Linie der Strecke. Genau darauf bezieht sich der Abstand darunter. */
+  /* aspect-ratio ist die Proportion des KASTENS, nicht die der Zeichnung.
+
+     .countdown ist ein Grid mit FESTER Höhe (--split-media-max-h) und drei
+     auto-Zeilen. Eine auto-Zeile schrumpft nicht: wird der Kasten hier zu
+     hoch, sprengen die drei Zeilen zusammen die feste Höhe und laufen unten
+     aus dem Kapitel heraus — über den Tabellenstand darunter. Der Kasten
+     muss also flacher bleiben als das, was Kopf und Kachelband übriglassen.
+
+     Dieser Wert stammt vom Querformat-Verlauf und hält genau diese Reserve
+     ein; die drei Zeilen behalten damit ihre gleichmäßigen Abstände aus
+     align-content: space-between. Das SVG skaliert seinen viewBox über das
+     voreingestellte preserveAspectRatio hinein und zentriert ihn darin, der
+     Kasten ist also unabhängig von der Form der jeweiligen Strecke — ein
+     Hochformat wie Mugello steht mittig und wird nicht beschnitten.
+
+     Wer hier eine andere Proportion einträgt, muss gegenprüfen, dass
+     scrollHeight von .countdown die clientHeight nicht übersteigt. */
   display: block;
   width: 100%;
   height: auto;
@@ -2197,6 +2204,33 @@ body.is-preload *::after {
   margin: 0;
   font-size: calc(var(--text-body-compact) * var(--countdown-scale));
   line-height: var(--lh-ui);
+}
+
+/* Vierte Zeile: der volle Reihenname unter dem Datum. Deutlich laenger als die
+   drei Zeilen darueber und deshalb bewusst OHNE --countdown-scale.
+
+   .countdown ist ein Grid mit fester Hoehe, dessen auto-Zeilen nicht
+   schrumpfen (siehe .countdown__track). Diese Zeile kommt zu einem bereits
+   vollen Kopf hinzu, faellt also am staerksten ins Gewicht: mit dem Faktor
+   1,8 liefe sie mehrzeilig und schoebe das Kachelband aus dem Kapitel.
+
+   Verschaerfend haengt die Blockbreite selbst an --split-media-max-h — ein
+   flaches Fenster macht den Block schmaler UND niedriger, der Text umbricht
+   dort also oefter, wo am wenigsten Platz ist. Ein Faktor kleiner 1 scheidet
+   aus: auf schmalen Fenstern ist --countdown-scale bereits auf 1 gesetzt, ein
+   zusaetzlicher Faktor drueckte den Grad dort unter 9px.
+
+   text-wrap: balance verteilt die Woerter gleichmaessig auf die Zeilen. */
+.countdown__series {
+  margin: 0;
+  /* 0,86 statt voller Fliesstextgrad: bei vollem Grad umbricht die Zeile auf
+     schmalen Bloecken zweizeilig, und JEDE weitere Zeile schiebt das
+     Kachelband aus dem Kapitel. Bei diesem Wert bleibt sie auf allen
+     geprueften Fenstern einzeilig. Weiter zu verkleinern bringt fast nichts:
+     den Platz frisst die Zeile selbst, nicht der Grad. */
+  font-size: calc(var(--text-body-compact) * 0.86);
+  line-height: var(--lh-ui);
+  text-wrap: balance;
 }
 
 /* Ortsname im Grad der Kapitelüberschrift daneben („Standings & Results").
@@ -2672,7 +2706,7 @@ body.is-preload *::after {
   text-align: left;
 }
 
-/* Trennt die beiden bevorstehenden Starts von allem, was gelaufen ist. */
+/* Trennt die bevorstehenden Starts von allem, was gelaufen ist. */
 .results__row--last-next td,
 .results__row--last-next th {
   border-bottom: var(--rule-w) solid var(--rule);
