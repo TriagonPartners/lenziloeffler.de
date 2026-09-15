@@ -4,8 +4,8 @@ Website von Nicolas „Lenzi" Loeffler, Formel-3-Fahrer.
 Reines HTML, CSS und JavaScript — kein Framework, kein Build-Schritt. Was in
 `site/` liegt, ist genau das, was online steht.
 
-**Aktueller Stand: v1.3.1** — Versionsverlauf siehe `CHANGELOG.md`.
-Diesen Stand auschecken: `git checkout v1.3.1`
+**Aktueller Stand: v1.4** — Versionsverlauf siehe `CHANGELOG.md`.
+Diesen Stand auschecken: `git checkout v1.4`
 
 ---
 
@@ -169,7 +169,7 @@ nichts mehr zu verteilen.
 Inhaltlich stehen darin erst die beiden Einleitungsabsätze, dann drei
 Kontaktzeilen im gleichen Label-Wert-Rhythmus: **Ansprechpartner, Mail,
 Telefon** — erst wer, dann wie. Hinter dem Namen sitzt das LinkedIn-Zeichen
-als Verweis auf das Profil. Es steht, wie die Flagge neben „BRNO", auf der
+als Verweis auf das Profil. Es steht, wie die Flagge neben „MUGELLO", auf der
 Versalhöhe seiner Zeile: die Marke füllt 57,14 % der Zeichenfläche
 (137,14–502,86 von 640), der Kasten ist so bemessen, dass genau diese Fläche
 die Versalhöhe trifft, und `vertical-align` setzt ihre Unterkante auf die
@@ -305,8 +305,12 @@ Beschriftung.
 
 ### Der Streckenverlauf ist eine Linie, kein Bild
 
-Im Countdown des Racing-Pop-ups steht der Verlauf des Automotodrom Brno.
-Quelle ist das Pre-Event-Blatt von Franz Wöss Racing. Dort liegt der Plan als
+Im Countdown des Racing-Pop-ups steht seit v1.4 der Verlauf des Autodromo
+Internazionale del Mugello. Der Abschnitt unten beschreibt, wie der
+vorherige Brno-Verlauf entstanden ist — das Verfahren gilt unverändert, und
+die Kastenproportion im Stylesheet stammt bis heute daraus.
+
+Quelle des Brno-Verlaufs ist das Pre-Event-Blatt von Franz Wöss Racing. Dort liegt der Plan als
 Bitmap (622 × 358) — **zweimal**, und die beiden Fassungen sind
 unterschiedlich gedreht: `xref 21` auf Seite 1 im Querformat, `xref 32` auf
 Seite 4 um 90° gekippt. Maßgeblich ist das Querformat.
@@ -344,17 +348,47 @@ CDF-Hellgrau des Fließtextes und `--line-w`, DIE Strichstärke der Seite.
 `vector-effect="non-scaling-stroke"` hält sie in jeder Größe auf genau diesem
 Maß.
 
+#### Eine Strecke austauschen
+
+Zwei Fallen, beide in v1.4 aufgelaufen:
+
+**Die `aspect-ratio` an `.countdown__track` ist die Proportion des KASTENS,
+nicht die der Zeichnung.** `.countdown` ist ein Grid mit fester Höhe und drei
+`auto`-Zeilen, und `auto`-Zeilen schrumpfen nicht. Trägt der Kasten die
+Proportion eines Hochformats, sprengen die drei Zeilen zusammen die feste
+Höhe und schieben das Kachelband über den Tabellenstand darunter. Der Wert
+bleibt deshalb bei `622.87 / 350.66`; das SVG skaliert seinen viewBox über
+das voreingestellte `preserveAspectRatio` hinein und zentriert ihn.
+
+**Der viewBox gehört auf die Zeichnung gezogen.** Der gelieferte
+Mugello-Pfad füllte seinen viewBox nicht aus — die Tinte lag bei x 58–252 und
+y 19–293 von 300 × 304,5, ringsum tote Ränder, und der Verlauf erschien
+entsprechend klein. Der viewBox ist per `getBBox()` auf die Zeichnung
+zusammengezogen, der Pfad selbst blieb unangetastet.
+
+Nach jedem Tausch gegenprüfen, dass `scrollHeight` von `.countdown` die
+`clientHeight` nicht übersteigt — und zwar über Fensterbreiten **und**
+-höhen: `--split-media-max-h` hängt an der Fensterhöhe, die Blockbreite
+wiederum an `--split-media-max-h`. Ein flaches Fenster macht den Block
+schmaler **und** niedriger.
+
 ### Countdown
 
 Der Zielzeitpunkt steht als ISO-Zeitstempel mit Zeitzone im Markup
 (`data-countdown`), die Ziffern setzt `main.js`. Aktuell:
 
 ```html
-data-countdown="2026-09-12T12:45:00+02:00"
+data-countdown="2026-10-17T14:20:00+02:00"
 ```
 
-Samstag, 12. September 2026, 12:45 Ortszeit Brno. Der Offset ist +02:00, weil
-Europe/Prague im September in der Sommerzeit läuft (CEST).
+Samstag, 17. Oktober 2026, 14:20 Ortszeit Mugello. Der Offset ist +02:00,
+weil Europe/Rome an dem Datum noch in der Sommerzeit läuft (CEST) — die
+Umstellung erfolgt erst am 25. Oktober.
+
+Über den Kacheln stehen vier Zeilen: Kicker („Next race weekend"),
+Ortsname mit Flagge, Datum und seit v1.4 die Serienbezeichnung. Die vierte
+Zeile trägt bewusst **nicht** `--countdown-scale` — sie ist deutlich länger
+als die drei darüber und liefe sonst mehrzeilig in dieselbe Überlauffalle.
 
 Die Kacheln stehen im Markup auf `hidden` und werden erst per JavaScript
 eingeschaltet — ohne JavaScript stünde sonst eine Reihe Nullen. Ort und Datum
@@ -398,12 +432,15 @@ Datumszeile (gemessen 937,46 gegen 937,44).
 
 #### Ein Faktor für den ganzen Block
 
-Kicker, Ort, Datum und die Kachelfläche stehen um ein Drittel größer als
-zuvor. Der Faktor sitzt an genau einer Stelle:
+Kicker, Ort, Datum und die Kachelfläche stehen deutlich größer als zuvor.
+Der Faktor sitzt an genau einer Stelle:
 
 ```css
---countdown-scale: 1.33;
+--countdown-scale: 1.8;
 ```
+
+Er stand bis v1.2 auf 1,33; seit das Kapitel kein Helmbild mehr trägt und
+der Block die ganze Kapitelfläche einnimmt, sind es 1,8.
 
 Die Kachelhöhe ist nicht gesetzt, sondern gerechnet — Ziffer, Zwischenraum,
 Einheit und zweimal die Luft an Ober- und Unterkante. Die Luft ist zusätzlich
@@ -744,8 +781,29 @@ Details, Rechte und Fehlersuche: **DEPLOY.md**.
 
 ## Bekannte Punkte
 
-Stand v1.3. Nichts davon blockiert den Betrieb; alles ist bewusst so und
-nicht versehentlich.
+Stand v1.4. Nichts davon blockiert den Betrieb; alles ist bewusst so und
+nicht versehentlich — mit Ausnahme des ersten Punktes.
+
+### Der Countdown-Block läuft auf flachen Fenstern über
+
+Auf Fenstern um 720–768 px Höhe übersteigt der Inhalt von `.countdown` dessen
+feste Höhe, das Kachelband rutscht nach unten aus dem Kapitel:
+
+| Viewport | v1.3.1 | v1.4 |
+|---|---|---|
+| 1440 × 720 | 24 px | 48 px |
+| 1366 × 768 | — | 19 px |
+| 1280 × 720 | 12 px | 36 px |
+
+Auf den beiden 720er Höhen besteht das seit v1.3 und früher; 1366 × 768 kommt
+in v1.4 durch die vierte Kopfzeile hinzu. Auf allen 17 weiteren geprüften
+Viewports — 1920 × 1080 bis 320 × 568 — tritt es nicht auf, und in keinem Fall
+überlappt das Kachelband den Tabellenstand.
+
+Ursache ist die feste Höhe von `.countdown` bei drei nicht schrumpfenden
+`auto`-Zeilen. Sauber lösen ließe es sich, indem die Streckenzeile den Rest
+aufnimmt statt einer festen Proportion — das verschiebt allerdings die
+Abstände zwischen Verlauf, Kopfzeilen und Kachelband.
 
 ### Ton im Racing-Pop-up braucht eine Nutzergeste
 
